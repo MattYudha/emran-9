@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.ns"]
+  },
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.4",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2",
+    "emailjs": "https://deno.land/x/emailjs/index.ts"
+  }
+}
