@@ -55,13 +55,14 @@ Our platform serves as a digital hub for clients to explore our services, reques
 -   **HTTP Client:** `Axios`
 -   **UUID Generation:** `uuid`
 
-## Project Structure
+## 📁 Project Structure
 
+```text
 ├── public/                       # Static assets (images, manifest.json, robots.txt)
 ├── src/
 │   ├── api/                      # Supabase client initialization
 │   ├── components/               # Reusable UI components
-│   │   ├── ui/                   # Generic UI components (e.g., Toast, Spinner)
+│   │   └── ui/                   # Generic UI components (e.g., Toast, Spinner)
 │   ├── contexts/                 # React Contexts (Language, Theme)
 │   ├── data/                     # Static data (e.g., printing specifications)
 │   ├── hooks/                    # Custom React hooks (e.g., useChatbotLogic, useAnalytics)
@@ -80,6 +81,7 @@ Our platform serves as a digital hub for clients to explore our services, reques
 ├── eslint.config.js              # ESLint configuration
 ├── tsconfig.json                 # TypeScript configuration
 └── README.md                     # This file
+
 
 ## Getting Started
 
