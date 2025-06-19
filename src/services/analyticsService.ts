@@ -1,3 +1,4 @@
+// src/services/analyticsService.ts
 import { supabase } from '../api/supabaseClient';
 import { AnalyticsEvent } from '../types/content';
 import { ANALYTICS_EVENTS } from '../utils/constants';
@@ -165,6 +166,9 @@ export class AnalyticsService {
    */
   private async trackEvent(eventType: string, eventData: Record<string, any>): Promise<void> {
     try {
+      // Dapatkan user ID dari sesi yang sedang aktif
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { error } = await supabase
         .from('analytics_events')
         .insert([
@@ -173,6 +177,7 @@ export class AnalyticsService {
             event_data: eventData,
             session_id: this.sessionId,
             timestamp: new Date().toISOString(),
+            user_id: user?.id || null, // Tambahkan user_id jika ada
             user_agent: navigator.userAgent,
             ip_address: null // Will be populated by server if needed
           }
@@ -183,6 +188,45 @@ export class AnalyticsService {
       }
     } catch (error) {
       console.error('Error in trackEvent:', error);
+    }
+  }
+
+  /**
+   * NEW: Mengambil ringkasan analitik untuk pengguna tertentu.
+   */
+  async getDashboardAnalyticsSummaryForUser(userId: string): Promise<{
+    totalChatbotInteractions: number;
+    totalServicePageViews: number;
+  }> {
+    try {
+      // Total Interaksi Chatbot
+      const { count: chatbotInteractionsCount, error: chatbotError } = await supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('event_type', ANALYTICS_EVENTS.CHATBOT_MESSAGE_SENT);
+
+      if (chatbotError) throw chatbotError;
+
+      // Total Kunjungan Halaman Layanan
+      const { count: servicePageViewsCount, error: pageViewError } = await supabase
+        .from('analytics_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('event_type', ANALYTICS_EVENTS.SERVICE_PAGE_VISITED);
+
+      if (pageViewError) throw pageViewError;
+
+      return {
+        totalChatbotInteractions: chatbotInteractionsCount || 0,
+        totalServicePageViews: servicePageViewsCount || 0,
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard analytics summary:', error);
+      return {
+        totalChatbotInteractions: 0,
+        totalServicePageViews: 0,
+      };
     }
   }
 

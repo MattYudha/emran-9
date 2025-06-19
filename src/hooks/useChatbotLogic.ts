@@ -1,4 +1,5 @@
-import { useReducer, useCallback, useEffect, useState } from 'react';
+// src/hooks/useChatbotLogic.ts
+import { useReducer, useCallback, useEffect, useState, useRef } from 'react'; // Tambahkan useRef
 import { v4 as uuidv4 } from 'uuid';
 import { chatbotReducer, initialChatbotState } from '../reducers/chatbotReducer';
 import { Message, SuggestedResponse } from '../types/chatbot';
@@ -17,13 +18,22 @@ export function useChatbotLogic() {
   const [rfqMode, setRfqMode] = useState(false);
   const [showRfqForm, setShowRfqForm] = useState(false);
   const [rfqData, setRfqData] = useState<Partial<RFQData>>({});
+  const [userInput, setUserInput] = useState("");
   const { language } = useLanguage();
   const t = translations[language];
 
+  const isInitialized = useRef(false); // Ditambahkan: useRef untuk status inisialisasi
+
   // Initialize chatbot with welcome message
   useEffect(() => {
+    // Pastikan inisialisasi hanya berjalan sekali, terutama di StrictMode.
+    // Gunakan isInitialized.current agar tidak memengaruhi render kedua di dev mode.
+    if (isInitialized.current) {
+      return;
+    }
+
     const greeting = getTimeBasedGreeting();
-    const businessHoursNote = isBusinessHours() 
+    const businessHoursNote = isBusinessHours()
       ? "Tim kami sedang online dan siap membantu!"
       : "Meskipun di luar jam kerja, saya tetap siap membantu Anda 24/7.";
 
@@ -36,14 +46,17 @@ export function useChatbotLogic() {
       timestamp: new Date(),
     };
 
-    if (state.messages.length === 0) {
-      dispatch({ type: 'ADD_MESSAGE', payload: welcomeMessage });
+    // Hanya tambahkan pesan jika belum ada pesan (untuk kasus refresh atau clear)
+    if (state.messages.length === 0) { //
+      dispatch({ type: 'ADD_MESSAGE', payload: welcomeMessage }); //
       
       // Set initial suggestions
       const initialSuggestions = generateDynamicSuggestions("", language, new Set(), false);
-      dispatch({ type: 'SET_SUGGESTIONS', payload: initialSuggestions });
+      dispatch({ type: 'SET_SUGGESTIONS', payload: initialSuggestions }); //
+      
+      isInitialized.current = true; // Tandai sudah diinisialisasi
     }
-  }, [language]);
+  }, [language, state.messages.length]); // Pertahankan 'language' di dependency array
 
   /**
    * Process user text message with RFQ detection
@@ -292,6 +305,7 @@ export function useChatbotLogic() {
     setRfqMode(false);
     setShowRfqForm(false);
     setRfqData({});
+    setUserInput(""); // Ditambahkan: Reset userInput saat percakapan dihapus
     
     // Reinitialize with welcome message
     const greeting = getTimeBasedGreeting();
@@ -313,6 +327,8 @@ export function useChatbotLogic() {
 
   return {
     ...state,
+    userInput, // Ditambahkan: Kembalikan userInput
+    setUserInput, // Ditambahkan: Kembalikan setUserInput
     rfqMode,
     showRfqForm,
     rfqData,

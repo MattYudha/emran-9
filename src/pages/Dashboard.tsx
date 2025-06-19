@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -12,15 +13,17 @@ import {
   AlertCircle,
   Award,
   Activity,
-  Bell,
-  Settings,
-  BarChart3
+  MessageSquare, 
+  BarChart3,
+  Eye, 
+  PieChart 
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../api/supabaseClient';
 import ActivityLogger from '../components/ActivityLogger';
 import ProgressChart from '../components/ProgressChart';
+import { analyticsService } from '../services/analyticsService'; 
 
 interface UserGoal {
   id: string;
@@ -43,10 +46,20 @@ interface UserActivity {
 interface UserProfile {
   id: string;
   full_name: string;
+  phone_number?: string;
+  avatar_url?: string;
+  join_date: string;
   streak: number;
   completed_activities: number;
   risk_score_current: number;
   risk_score_previous: number;
+  // role: string; 
+}
+
+// NEW: Interface untuk ringkasan analitik
+interface DashboardAnalyticsSummary {
+  totalChatbotInteractions: number;
+  totalServicePageViews: number;
 }
 
 const Dashboard: React.FC = () => {
@@ -56,6 +69,10 @@ const Dashboard: React.FC = () => {
   const [goals, setGoals] = useState<UserGoal[]>([]);
   const [activities, setActivities] = useState<UserActivity[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [analyticsSummary, setAnalyticsSummary] = useState<DashboardAnalyticsSummary>({ 
+    totalChatbotInteractions: 0,
+    totalServicePageViews: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
@@ -95,10 +112,14 @@ const Dashboard: React.FC = () => {
         .select('*')
         .eq('id', user.id)
         .single();
+      
+      // NEW: Fetch dashboard analytics summary
+      const dashboardAnalytics = await analyticsService.getDashboardAnalyticsSummaryForUser(user.id);
 
       setGoals(goalsData || []);
       setActivities(activitiesData || []);
       setProfile(profileData);
+      setAnalyticsSummary(dashboardAnalytics); 
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -130,6 +151,7 @@ const Dashboard: React.FC = () => {
       setGoals(prev => [data, ...prev]);
       setNewGoal({ title: '', description: '', target_date: '' });
       setShowGoalForm(false);
+      fetchUserData(); 
     } catch (error) {
       console.error('Error creating goal:', error);
     }
@@ -147,6 +169,7 @@ const Dashboard: React.FC = () => {
       setGoals(prev => prev.map(goal => 
         goal.id === goalId ? { ...goal, status: status as any } : goal
       ));
+      fetchUserData(); 
     } catch (error) {
       console.error('Error updating goal status:', error);
     }
@@ -162,6 +185,7 @@ const Dashboard: React.FC = () => {
       if (error) throw error;
 
       setGoals(prev => prev.filter(goal => goal.id !== goalId));
+      fetchUserData(); 
     } catch (error) {
       console.error('Error deleting goal:', error);
     }
@@ -197,6 +221,17 @@ const Dashboard: React.FC = () => {
     return labels[type]?.[language] || type;
   };
 
+  // NEW: Hitung rincian status tujuan
+  const goalStatusCounts = goals.reduce((acc, goal) => {
+    acc[goal.status] = (acc[goal.status] || 0) + 1;
+    return acc;
+  }, {} as Record<UserGoal['status'], number>);
+
+  const totalGoals = goals.length;
+  const completedGoals = goalStatusCounts.completed || 0;
+  const goalCompletionRate = totalGoals > 0 ? ((completedGoals / totalGoals) * 100).toFixed(1) : '0.0';
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -222,7 +257,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8"> 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -293,6 +328,64 @@ const Dashboard: React.FC = () => {
               <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
           </motion.div>
+
+          {/* NEW: Engagement Summary Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t.dashboardTotalChatbotInteractions}
+                </p>
+                <p className="text-2xl font-bold text-teal-600">
+                  {analyticsSummary.totalChatbotInteractions}
+                </p>
+              </div>
+              <MessageSquare className="h-8 w-8 text-teal-500" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t.dashboardTotalPageViews}
+                </p>
+                <p className="text-2xl font-bold text-indigo-600">
+                  {analyticsSummary.totalServicePageViews}
+                </p>
+              </div>
+              <Eye className="h-8 w-8 text-indigo-500" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t.dashboardGoalCompletionRate}
+                </p>
+                <p className="text-2xl font-bold text-pink-600">
+                  {goalCompletionRate}%
+                </p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-pink-500" />
+            </div>
+          </motion.div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -302,14 +395,14 @@ const Dashboard: React.FC = () => {
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {language === 'id' ? 'Tujuan Anda' : 'Your Goals'}
+                    {t.yourGoals}
                   </h2>
                   <button
                     onClick={() => setShowGoalForm(true)}
                     className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {language === 'id' ? 'Tambah Tujuan' : 'Add Goal'}
+                    {t.addYourFirstGoal}
                   </button>
                 </div>
               </div>
@@ -319,22 +412,51 @@ const Dashboard: React.FC = () => {
                   {goals.length === 0 ? (
                     <div className="text-center py-12">
                       <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {language === 'id' 
-                          ? 'Belum ada tujuan. Buat tujuan pertama Anda untuk memulai!'
-                          : 'No goals yet. Create your first goal to get started!'
-                        }
+                      <p className="text-gray-500 dark:text-gray-400 mb-2">
+                        {t.noGoalsYet}
                       </p>
+                      <button
+                        onClick={() => setShowGoalForm(true)}
+                        className="text-green-600 hover:text-green-700 font-medium flex items-center mx-auto"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        {t.addYourFirstGoal}
+                      </button>
                     </div>
                   ) : (
                     <div className="space-y-4">
+                      {/* NEW: Goal Status Breakdown - Simple visual text */}
+                      <div className="mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                          {t.dashboardGoalStatusBreakdown}
+                        </h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                            <p className="text-2xl font-bold text-blue-600">{goalStatusCounts.in_progress || 0}</p>
+                            <p className="text-sm text-blue-800 dark:text-blue-300">{t.dashboardInProgressGoals}</p>
+                          </div>
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg">
+                            <p className="text-2xl font-bold text-yellow-600">{goalStatusCounts.pending || 0}</p>
+                            <p className="text-sm text-yellow-800 dark:text-yellow-300">{t.dashboardPendingGoals}</p>
+                          </div>
+                          <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                            <p className="text-2xl font-bold text-green-600">{goalStatusCounts.completed || 0}</p>
+                            <p className="text-sm text-green-800 dark:text-green-300">{t.dashboardCompletedGoals}</p>
+                          </div>
+                          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+                            <p className="text-2xl font-bold text-red-600">{goalStatusCounts.cancelled || 0}</p>
+                            <p className="text-sm text-red-800 dark:text-red-300">{t.dashboardCancelledGoals}</p>
+                          </div>
+                        </div>
+                      </div>
+
                       {goals.map((goal, index) => (
                         <motion.div
                           key={goal.id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
-                          transition={{ delay: index * 0.1 }}
+                          transition={{ delay: index * 0.05 }} 
                           className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                         >
                           <div className="flex items-start justify-between">
@@ -371,16 +493,17 @@ const Dashboard: React.FC = () => {
                                   <CheckCircle className="h-4 w-4" />
                                 </button>
                               )}
+                              {/* BARIS YANG DIMODIFIKASI UNTUK PERBAIKAN SINTAKS */}
                               <button
                                 onClick={() => setEditingGoal(goal)}
-                                className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                className={"p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"}
                                 title={language === 'id' ? 'Edit tujuan' : 'Edit goal'}
                               >
                                 <Edit3 className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteGoal(goal.id)}
-                                className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                className={"p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"}
                                 title={language === 'id' ? 'Hapus tujuan' : 'Delete goal'}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -406,18 +529,21 @@ const Dashboard: React.FC = () => {
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {language === 'id' ? 'Aktivitas Terbaru' : 'Recent Activities'}
+                    {t.noActivitiesYet || 'Aktivitas Terbaru'}
                   </h2>
-                  <ActivityLogger onActivityLogged={fetchUserData} />
+                  {activities.length > 0 && <ActivityLogger onActivityLogged={fetchUserData} />}
                 </div>
               </div>
               <div className="p-6">
                 {activities.length === 0 ? (
                   <div className="text-center py-8">
                     <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
-                      {language === 'id' ? 'Belum ada aktivitas' : 'No activities yet'}
+                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
+                      {t.noActivitiesYet}
                     </p>
+                    <ActivityLogger onActivityLogged={fetchUserData} 
+                      buttonText={t.logFirstActivity}
+                    />
                   </div>
                 ) : (
                   <div className="space-y-4">

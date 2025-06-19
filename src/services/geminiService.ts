@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { API_CONFIG, CHATBOT_CONFIG } from '../utils/constants';
+import { API_CONFIG, CHATBOT_CONFIG, COMPANY_INFO } from '../utils/constants'; // Import COMPANY_INFO
 import { ImageAnalysisResult, ConversationTurn } from '../types/chatbot';
 import { getRecommendationsForCategory, estimateCost } from '../data/printingSpecs';
 import { aiConfigService } from './aiConfigService';
@@ -25,7 +25,7 @@ interface GeminiResponse {
  */
 export class GeminiService {
   private static instance: GeminiService;
-  
+
   public static getInstance(): GeminiService {
     if (!GeminiService.instance) {
       GeminiService.instance = new GeminiService();
@@ -50,31 +50,31 @@ export class GeminiService {
     try {
       // First, check for CMS-driven responses
       const cmsResponse = await chatbotContentService.findMatchingResponse(message, language);
-      
+
       if (cmsResponse) {
         const responseText = chatbotContentService.getResponseText(cmsResponse, language);
-        
+
         // If it's a static response, return it directly
         if (cmsResponse.responseType === 'static') {
           return responseText;
         }
-        
+
         // If it's an RFQ trigger, return the trigger message
         if (cmsResponse.responseType === 'rfq_trigger') {
           return responseText;
         }
-        
+
         // For dynamic prompts, use the CMS text as part of the prompt
         if (cmsResponse.responseType === 'dynamic_prompt') {
           const prompt = this.buildConversationPrompt(message, language, conversationHistory, responseText);
           return await this.callGeminiAPI([{ text: prompt }]);
         }
       }
-      
+
       // Fallback to regular AI response
       const prompt = this.buildConversationPrompt(message, language, conversationHistory);
       return await this.callGeminiAPI([{ text: prompt }]);
-      
+
     } catch (error) {
       console.error('Text generation failed:', error);
       throw error;
@@ -91,7 +91,7 @@ export class GeminiService {
     language: string = 'id'
   ): Promise<{ response: string; analysis: ImageAnalysisResult }> {
     const prompt = this.buildImageAnalysisPrompt(userMessage, language);
-    
+
     try {
       const response = await this.callGeminiAPI([
         {
@@ -104,7 +104,7 @@ export class GeminiService {
       ]);
 
       const analysisResult = this.parseImageAnalysisResponse(response);
-      
+
       return {
         response,
         analysis: analysisResult
@@ -126,52 +126,52 @@ export class GeminiService {
       zh: "Chinese",
       ar: "Arabic",
     };
-    
+
     const responseLanguage = languageMap[language] || "Indonesian";
 
-    return `You are Emran Chatbot, the official AI assistant for PT. EMRAN GHANIM ASAHI, a premium printing and labeling company in Tangerang, Banten, Indonesia.
+    return `You are Emran Chatbot, the official AI assistant for ${COMPANY_INFO.NAME}, a premium printing and labeling company established in ${new Date(COMPANY_INFO.ESTABLISHED).getFullYear()} in Tangerang, Banten, Indonesia.
 
 **CRITICAL INSTRUCTIONS FOR IMAGE ANALYSIS:**
 
-1. **ANALYZE THE IMAGE SYSTEMATICALLY:**
-   - Identify all visible objects, text, design elements, and materials
-   - Determine the likely product category (business cards, brochures, banners, stickers, packaging, etc.)
-   - Assess print quality, color usage, and design complexity
-   - Estimate approximate dimensions if possible from visual cues
+1.  **ANALYZE THE IMAGE SYSTEMATICALLY:**
+    -   Identify all visible objects, text, design elements, and materials
+    -   Determine the likely product category (business cards, brochures, banners, stickers, packaging, etc.)
+    -   Assess print quality, color usage, and design complexity
+    -   Estimate approximate dimensions if possible from visual cues
 
-2. **PROVIDE STRUCTURED ANALYSIS:**
-   - **Detected Objects:** List what you see (text, logos, images, shapes, etc.)
-   - **Product Category:** Primary category and printing type recommendation
-   - **Material Recommendations:** Suggest appropriate materials based on the design
-   - **Quality Assessment:** Comment on current quality and potential improvements
-   - **Size Estimation:** If possible, estimate dimensions
-   - **Cost Estimation:** Provide rough price range in Indonesian Rupiah
+2.  **PROVIDE STRUCTURED ANALYSIS:**
+    -   **Detected Objects:** List what you see (text, logos, images, shapes, etc.)
+    -   **Product Category:** Primary category and printing type recommendation
+    -   **Material Recommendations:** Suggest appropriate materials based on the design
+    -   **Quality Assessment:** Comment on current quality and potential improvements
+    -   **Size Estimation:** If possible, estimate dimensions
+    -   **Cost Estimation:** Provide rough price range in Indonesian Rupiah
 
-3. **COMPANY-SPECIFIC RECOMMENDATIONS:**
-   - Reference PT. EMRAN GHANIM ASAHI's capabilities:
-     * Digital printing (17,500 units/day capacity)
-     * Offset printing (49,000 units/day capacity)
-     * Large format printing
-     * Custom packaging solutions
-     * Professional finishing options
-   - Suggest relevant services from our portfolio
-   - Mention our quality standards and turnaround times
+3.  **COMPANY-SPECIFIC RECOMMENDATIONS:**
+    -   Reference ${COMPANY_INFO.NAME}'s capabilities:
+        * Digital printing (17,500 units/day capacity)
+        * Offset printing (49,000 units/day capacity)
+        * Large format printing
+        * Custom packaging solutions
+        * Professional finishing options
+    -   Suggest relevant services from our portfolio
+    -   Mention our quality standards and turnaround times
 
-4. **RESPONSE FORMAT:**
-   - Keep response under 80 words
-   - Be specific and actionable
-   - Include a call-to-action to contact us
-   - Respond in ${responseLanguage}
+4.  **RESPONSE FORMAT:**
+    -   Keep response under 80 words
+    -   Be specific and actionable
+    -   Include a call-to-action to contact us
+    -   Respond in ${responseLanguage}
 
 **USER MESSAGE:** ${userMessage}
 
 **COMPANY CONTACT INFO:**
-- Phone: (021) 89088260
-- Direct: Mr. Darmawan at 0813-9831-8839
-- Email: sales@emranghanimasahi.net
-- Location: The Avenue Block Z 06/36, Citra Raya, Cikupa, Tangerang
+- Phone: ${COMPANY_INFO.PHONE}
+- Direct: ${COMPANY_INFO.DIRECT_CONTACT.NAME} at ${COMPANY_INFO.DIRECT_CONTACT.PHONE}
+- Email: ${COMPANY_INFO.EMAIL}
+- Location: ${COMPANY_INFO.ADDRESS}
 
-Please analyze the image and provide helpful recommendations for PT. EMRAN GHANIM ASAHI's printing services.`;
+Please analyze the image and provide helpful recommendations for ${COMPANY_INFO.NAME}'s printing services.`;
   }
 
   /**
@@ -185,14 +185,14 @@ Please analyze the image and provide helpful recommendations for PT. EMRAN GHANI
   ): string {
     const languageMap: { [key: string]: string } = {
       en: "English",
-      id: "Indonesian", 
+      id: "Indonesian",
       ja: "Japanese",
       zh: "Chinese",
       ar: "Arabic",
     };
-    
+
     const responseLanguage = languageMap[language] || "Indonesian";
-    
+
     // Build conversation context
     let contextSection = "";
     if (conversationHistory.length > 0) {
@@ -208,34 +208,34 @@ Please analyze the image and provide helpful recommendations for PT. EMRAN GHANI
       cmsSection = `\n**CMS GUIDANCE:**\n${cmsGuidance}\n`;
     }
 
-    return `You are Emran Chatbot, the official AI assistant for PT. EMRAN GHANIM ASAHI, a premium printing and labeling company established in 2023 in Tangerang, Banten, Indonesia.
+    return `You are Emran Chatbot, the official AI assistant for ${COMPANY_INFO.NAME}, a premium printing and labeling company established in ${new Date(COMPANY_INFO.ESTABLISHED).getFullYear()} in Tangerang, Banten, Indonesia.
 
 **YOUR IDENTITY:**
 - Name: Emran Chatbot
-- Role: Virtual Assistant for PT. EMRAN GHANIM ASAHI
+- Role: Virtual Assistant for ${COMPANY_INFO.NAME}
 - Personality: Professional, helpful, knowledgeable, customer-focused
 
 **COMPANY PROFILE:**
-PT. EMRAN GHANIM ASAHI specializes in high-quality printing and labeling solutions for retail, fashion, and logistics industries. We offer UPC labels, stickers, books, calendars, brochures, polybags, barcode labels, hangtags, size labels, care labels, inboxes, screen printing, custom ribbons, and personalized stationery.
+${COMPANY_INFO.NAME} specializes in high-quality printing and labeling solutions for retail, fashion, and logistics industries. We offer UPC labels, stickers, books, calendars, brochures, polybags, barcode labels, hangtags, size labels, care labels, inboxes, screen printing, custom ribbons, and personalized stationery.
 
 **KEY INFORMATION:**
-- **Established:** April 3, 2023
-- **Location:** The Avenue Block Z 06/36, Citra Raya, Cikupa, Tangerang
-- **Contact:** Email: sales@emranghanimasahi.net | Phone: (021) 89088260 | Direct: Mr. Darmawan at 0813-9831-8839
+- **Established:** ${COMPANY_INFO.ESTABLISHED_DATE}
+- **Location:** ${COMPANY_INFO.ADDRESS}
+- **Contact:** Email: ${COMPANY_INFO.EMAIL} | Phone: ${COMPANY_INFO.PHONE} | Direct: ${COMPANY_INFO.DIRECT_CONTACT.NAME} at ${COMPANY_INFO.DIRECT_CONTACT.PHONE}
 - **Partners:** PT. UNIMITRA KHARISMA, PT. HWA SEUNG INDONESIA, PT. SMART MULTI FINANCE
 - **Production Capacity:** Cutting machines (17,500 units/day), Offset printers (49,000 units/day), Sealing machines (35,000 units/day)
 
 **RESPONSE GUIDELINES:**
-1. **Language:** Respond strictly in ${responseLanguage}
-2. **Length:** Keep responses under 60 words, focusing on direct and helpful information
-3. **Tone:** Maintain professional, friendly, customer-service oriented tone
-4. **Relevance:** Prioritize PT. EMRAN GHANIM ASAHI's services and capabilities
-5. **Accuracy:** Only provide factual information based on company profile
-6. **Call-to-Action:** When appropriate, encourage contact for quotes or consultations
+1.  **Language:** Respond strictly in ${responseLanguage}
+2.  **Length:** Keep responses under 60 words, focusing on direct and helpful information
+3.  **Tone:** Maintain professional, friendly, customer-service oriented tone
+4.  **Relevance:** Prioritize ${COMPANY_INFO.NAME}'s services and capabilities
+5.  **Accuracy:** Only provide factual information based on company profile
+6.  **Call-to-Action:** When appropriate, encourage contact for quotes or consultations
 ${contextSection}${cmsSection}
 **CURRENT USER MESSAGE:** ${message}
 
-Please provide a helpful, accurate response that represents PT. EMRAN GHANIM ASAHI professionally.`;
+Please provide a helpful, accurate response that represents ${COMPANY_INFO.NAME} professionally.`
   }
 
   /**
@@ -243,10 +243,10 @@ Please provide a helpful, accurate response that represents PT. EMRAN GHANIM ASA
    */
   private async callGeminiAPI(parts: any[], retries: number = 3): Promise<string> {
     const url = `${API_CONFIG.GEMINI_API_URL}?key=${GEMINI_API_KEY}`;
-    
+
     // Get AI configuration from CMS
     const aiConfig = await aiConfigService.getGeminiConfig();
-    
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const response = await axios.post<GeminiResponse>(
@@ -267,7 +267,7 @@ Please provide a helpful, accurate response that represents PT. EMRAN GHANIM ASA
         );
 
         const reply = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
+
         if (!reply) {
           throw new Error('Empty response from Gemini API');
         }
@@ -275,19 +275,19 @@ Please provide a helpful, accurate response that represents PT. EMRAN GHANIM ASA
         return reply.trim();
       } catch (error: any) {
         console.error(`Gemini API attempt ${attempt} failed:`, error);
-        
+
         if (error.response?.status === 429 && attempt < retries) {
           // Rate limit - wait before retry
           await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
           continue;
         }
-        
+
         if (attempt === retries) {
           throw this.handleGeminiError(error);
         }
       }
     }
-    
+
     throw new Error('All Gemini API attempts failed');
   }
 
@@ -309,7 +309,7 @@ Please provide a helpful, accurate response that represents PT. EMRAN GHANIM ASA
     try {
       // Try to extract structured information from the response
       const lowerResponse = response.toLowerCase();
-      
+
       // Detect product category
       if (lowerResponse.includes('kartu nama') || lowerResponse.includes('business card')) {
         defaultResult.productCategory = { primary: 'business-cards', printingType: 'digital' };
@@ -347,25 +347,25 @@ Please provide a helpful, accurate response that represents PT. EMRAN GHANIM ASA
   private handleGeminiError(error: any): Error {
     if (error.response) {
       const { status } = error.response;
-      
+
       switch (status) {
         case 400:
-          return new Error('Permintaan tidak valid. Silakan coba dengan pertanyaan yang berbeda.');
+          return new Error(language === 'id' ? 'Permintaan tidak valid. Silakan coba dengan pertanyaan yang berbeda.' : 'Invalid request. Please try with a different question.');
         case 401:
         case 403:
-          return new Error('Terjadi masalah autentikasi. Silakan hubungi dukungan teknis.');
+          return new Error(language === 'id' ? 'Terjadi masalah autentikasi. Silakan hubungi dukungan teknis.' : 'Authentication issue occurred. Please contact technical support.');
         case 429:
-          return new Error('Terlalu banyak permintaan. Silakan tunggu sebentar dan coba lagi.');
+          return new Error(language === 'id' ? 'Terlalu banyak permintaan. Silakan tunggu sebentar dan coba lagi.' : 'Too many requests. Please wait a moment and try again.');
         case 500:
         case 503:
-          return new Error('Server AI sedang mengalami gangguan. Silakan hubungi kami di (021) 89088260.');
+          return new Error(language === 'id' ? `Server AI sedang mengalami gangguan. Silakan hubungi kami di ${COMPANY_INFO.PHONE}.` : `AI server is experiencing issues. Please contact us at ${COMPANY_INFO.PHONE}.`);
         default:
-          return new Error('Terjadi kesalahan tak terduga. Silakan hubungi kami di (021) 89088260.');
+          return new Error(language === 'id' ? `Terjadi kesalahan tak terduga. Silakan hubungi kami di ${COMPANY_INFO.PHONE}.` : `An unexpected error occurred. Please contact us at ${COMPANY_INFO.PHONE}.`);
       }
     } else if (error.request) {
-      return new Error('Tidak dapat terhubung ke server AI. Periksa koneksi internet Anda.');
+      return new Error(language === 'id' ? `Tidak dapat terhubung ke server AI. Periksa koneksi internet Anda atau hubungi kami di ${COMPANY_INFO.PHONE}.` : `Cannot connect to AI server. Please check your internet connection or contact us at ${COMPANY_INFO.PHONE}.`);
     } else {
-      return new Error('Terjadi kesalahan sistem. Silakan hubungi dukungan teknis.');
+      return new Error(language === 'id' ? `Terjadi kesalahan sistem. Silakan hubungi dukungan teknis di ${COMPANY_INFO.PHONE}.` : `A system error occurred. Please contact technical support at ${COMPANY_INFO.PHONE}.`);
     }
   }
 }

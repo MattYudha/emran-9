@@ -497,7 +497,7 @@ const Chatbot: React.FC = () => {
   const { language } = useLanguage();
   const t = translations[language];
   const [isOpen, setIsOpen] = useState(false);
-  const [userInput, setUserInput] = useState("");
+  // REMOVED: const [userInput, setUserInput] = useState(""); // <-- Dipindahkan ke useChatbotLogic
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   const {
@@ -512,7 +512,9 @@ const Chatbot: React.FC = () => {
     handleSuggestionSelect,
     handleRFQSubmit,
     setShowRfqForm,
-    clearConversation
+    clearConversation,
+    userInput, // Ditambahkan: Di-destructure dari useChatbotLogic
+    setUserInput // Ditambahkan: Di-destructure dari useChatbotLogic
   } = useChatbotLogic();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);

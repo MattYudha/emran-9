@@ -1,3 +1,4 @@
+// src/components/UserProfileManager.tsx
 "use client"
 
 import type React from "react"
@@ -6,6 +7,7 @@ import { User, Camera, Save, Edit3, Shield, Bell, Globe } from "lucide-react"
 import { useLanguage } from "../contexts/LanguageContext"
 import { translations } from "../utils/translations"
 import { supabase } from "../api/supabaseClient"
+import { useToast } from "./ui/ToastContainer" // Import useToast
 
 interface UserProfile {
   id: string
@@ -21,9 +23,8 @@ interface UserProfile {
 
 const UserProfileManager: React.FC = () => {
   const { language } = useLanguage()
-  // Pastikan 'translations' memiliki tipe yang sesuai jika Anda menggunakannya.
-  // Untuk contoh ini, saya asumsikan 'translations' mengembalikan objek yang dapat diakses dengan string kunci.
   const t = translations[language]
+  const { showToast } = useToast(); // Inisialisasi hook useToast
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -33,7 +34,6 @@ const UserProfileManager: React.FC = () => {
     full_name: "",
     phone_number: "",
   })
-  // State baru untuk mengelola status unggahan avatar
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const UserProfileManager: React.FC = () => {
 
       const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
-      if (error && error.code !== "PGRST116") throw error // PGRST116 adalah kode untuk 'tidak ditemukan'
+      if (error && error.code !== "PGRST116") throw error 
 
       if (data) {
         setProfile(data)
@@ -86,7 +86,11 @@ const UserProfileManager: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching profile:", error)
-      // Anda bisa menambahkan notifikasi kesalahan di sini
+      showToast({ // Mengganti alert()
+        title: "Error",
+        message: "Failed to fetch profile data.",
+        type: "error"
+      });
     } finally {
       setLoading(false)
     }
@@ -102,13 +106,12 @@ const UserProfileManager: React.FC = () => {
         .update({
           full_name: editForm.full_name,
           phone_number: editForm.phone_number,
-          updated_at: new Date().toISOString(), // Perbarui timestamp
+          updated_at: new Date().toISOString(), 
         })
         .eq("id", profile.id)
 
       if (error) throw error
 
-      // Perbarui state lokal secara langsung setelah berhasil disimpan
       setProfile((prev) =>
         prev
           ? {
@@ -119,33 +122,53 @@ const UserProfileManager: React.FC = () => {
           : null,
       )
 
-      setIsEditing(false) // Keluar dari mode edit
+      setIsEditing(false) 
+      showToast({ // Mengganti alert()
+        title: "Profile Updated",
+        message: "Your profile has been saved successfully!",
+        type: "success"
+      });
     } catch (error) {
       console.error("Error updating profile:", error)
-      // Anda bisa menambahkan notifikasi kesalahan di sini
+      showToast({ // Mengganti alert()
+        title: "Error",
+        message: "Failed to save profile changes. Please try again.",
+        type: "error"
+      });
     } finally {
       setSaving(false)
     }
   }
 
-  // Ganti fungsi handleAvatarUpload dengan implementasi yang lebih robust:
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file || !profile) {
+      showToast({
+        title: "Upload Error",
+        message: "No file selected or profile not loaded.",
+        type: "error"
+      });
       return
     }
 
-    // Validate file
-    const maxSize = 5 * 1024 * 1024 // 5MB
+    const maxSize = 5 * 1024 * 1024 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Please select a valid image file (JPG, PNG, or WebP)")
+      showToast({ // Mengganti alert()
+        title: "Invalid File Type",
+        message: "Please select a valid image file (JPG, PNG, or WebP).",
+        type: "error"
+      });
       return
     }
 
     if (file.size > maxSize) {
-      alert("File size must be less than 5MB")
+      showToast({ // Mengganti alert()
+        title: "File Too Large",
+        message: "File size must be less than 5MB.",
+        type: "error"
+      });
       return
     }
 
@@ -156,7 +179,6 @@ const UserProfileManager: React.FC = () => {
       const fileName = `${profile.id}-${Date.now()}.${fileExt}`
       const filePath = `avatars/${fileName}`
 
-      // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, {
         cacheControl: "3600",
         upsert: false,
@@ -164,12 +186,10 @@ const UserProfileManager: React.FC = () => {
 
       if (uploadError) throw uploadError
 
-      // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(filePath)
 
-      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -180,17 +200,22 @@ const UserProfileManager: React.FC = () => {
 
       if (updateError) throw updateError
 
-      // Update local state
       setProfile((prev) => (prev ? { ...prev, avatar_url: publicUrl } : null))
 
-      // Show success message
-      alert("Avatar updated successfully!")
+      showToast({ // Mengganti alert()
+        title: "Avatar Updated",
+        message: "Your profile picture has been updated successfully!",
+        type: "success"
+      });
     } catch (error) {
       console.error("Error uploading avatar:", error)
-      alert("Failed to upload avatar. Please try again.")
+      showToast({ // Mengganti alert()
+        title: "Upload Failed",
+        message: `Failed to upload avatar. ${error instanceof Error ? error.message : String(error)}`,
+        type: "error"
+      });
     } finally {
       setUploadingAvatar(false)
-      // Reset file input
       event.target.value = ""
     }
   }
@@ -235,10 +260,10 @@ const UserProfileManager: React.FC = () => {
                 <Camera className="h-4 w-4 text-gray-600" />
                 <input
                   type="file"
-                  accept="image/*" // Memastikan hanya gambar yang bisa dipilih
+                  accept="image/*" 
                   onChange={handleAvatarUpload}
                   className="hidden"
-                  disabled={uploadingAvatar} // Nonaktifkan saat sedang mengunggah
+                  disabled={uploadingAvatar} 
                 />
               </label>
               {/* Indikator Loading untuk Unggahan Avatar */}

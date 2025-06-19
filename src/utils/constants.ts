@@ -1,3 +1,4 @@
+// src/utils/constants.ts
 // API Configuration
 export const API_CONFIG = {
   GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent',
@@ -22,14 +23,16 @@ export const CHATBOT_CONFIG = {
 // Company Information
 export const COMPANY_INFO = {
   NAME: 'PT. EMRAN GHANIM ASAHI',
-  ESTABLISHED: '2023-04-03',
-  ADDRESS: 'The Avenue Block Z 06/36, Citra Raya, Cikupa, Tangerang',
+  ESTABLISHED: '2023-04-03', // Original format
+  ESTABLISHED_DATE: 'April 3, 2023', // Human-readable format
+  ADDRESS: 'The Avenue Blok Z 06/36, Citra Raya, Cikupa, Tangerang',
   PHONE: '(021) 89088260',
   EMAIL: 'sales@emranghanimasahi.net',
   DIRECT_CONTACT: {
     NAME: 'Mr. Darmawan',
     PHONE: '0813-9831-8839'
   },
+  COMPANY_EMAIL_RECEIVER: 'emranghanimasahi@gmail.com', // Added for backend email receiver
   TIMEZONE: 'Asia/Jakarta'
 } as const;
 

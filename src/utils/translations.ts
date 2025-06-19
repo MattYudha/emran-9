@@ -1,3 +1,4 @@
+// src/utils/translations.ts
 interface Translation {
   // Navigation
   home: string;
@@ -132,6 +133,8 @@ interface Translation {
   chatbotWelcome: string;
   chatbotResponse: string;
   chatbotName: string;
+  chatbotProactiveDashboard: string; // NEW
+  chatbotProactiveDashboardPrompt: string; // NEW
 
   // Image Upload Features
   imageUploadPrompt: string;
@@ -150,10 +153,17 @@ interface Translation {
   smtpError: string;
   dbError: string;
   serverError: string;
+
+  // Dashboard Specific (NEW)
+  noGoalsYet: string;
+  addYourFirstGoal: string;
+  noActivitiesYet: string;
+  logFirstActivity: string;
 }
 
 export const translations: { [key: string]: Translation } = {
   id: {
+    // ... (Navigation, Hero, Services, About, Team, Portfolio, Testimonials, Contact, Footer) ...
     // Navigation
     home: "Beranda",
     services: "Layanan",
@@ -306,6 +316,8 @@ export const translations: { [key: string]: Translation } = {
     chatbotResponse:
       "Terima kasih atas pesan Anda. Tim kami akan segera menghubungi Anda.",
     chatbotName: "Emran Chatbot",
+    chatbotProactiveDashboard: "Selamat datang di Dashboard Anda! Apakah Anda ingin mencatat aktivitas atau menetapkan tujuan baru?", // NEW
+    chatbotProactiveDashboardPrompt: "Saya ingin mencatat aktivitas", // NEW
 
     // Image Upload Features
     imageUploadPrompt: "Klik ikon klip untuk mengunggah gambar",
@@ -324,8 +336,15 @@ export const translations: { [key: string]: Translation } = {
     smtpError: "Gagal mengirim email",
     dbError: "Gagal menyimpan data",
     serverError: "Kesalahan konfigurasi server",
+
+    // Dashboard Specific (NEW)
+    noGoalsYet: "Belum ada tujuan yang ditetapkan. Tetapkan tujuan untuk membantu Anda tetap termotivasi dan melacak kemajuan Anda!",
+    addYourFirstGoal: "Tambahkan Tujuan Pertama Anda",
+    noActivitiesYet: "Belum ada aktivitas yang dicatat. Catat aktivitas Anda untuk melacak kemajuan dan membangun streak Anda!",
+    logFirstActivity: "Catat Aktivitas Pertama Anda",
   },
   en: {
+    // ... (Navigation, Hero, Services, About, Team, Portfolio, Testimonials, Contact, Footer) ...
     // Navigation
     home: "Home",
     about: "About",
@@ -482,6 +501,8 @@ export const translations: { [key: string]: Translation } = {
     chatbotResponse:
       "Thank you for your message. One of our representatives will get back to you shortly. For immediate assistance, please call our customer service line.",
     chatbotName: "Emran Chatbot",
+    chatbotProactiveDashboard: "Welcome to your Dashboard! Would you like to log an activity or set a new goal?", // NEW
+    chatbotProactiveDashboardPrompt: "I want to log an activity", // NEW
 
     // Image Upload Features
     imageUploadPrompt: "Click the paperclip icon to upload an image",
@@ -500,8 +521,15 @@ export const translations: { [key: string]: Translation } = {
     smtpError: "Failed to send email",
     dbError: "Failed to save submission",
     serverError: "Server configuration error",
+
+    // Dashboard Specific (NEW)
+    noGoalsYet: "No goals set yet. Set some goals to help you stay motivated and track your progress!",
+    addYourFirstGoal: "Add Your First Goal",
+    noActivitiesYet: "No activities logged yet. Log your activities to track progress and build your streak!",
+    logFirstActivity: "Log Your First Activity",
   },
   ja: {
+    // ... (Your existing Japanese translations) ...
     // Navigation
     home: "ホーム",
     about: "会社概要",
@@ -660,6 +688,8 @@ export const translations: { [key: string]: Translation } = {
     chatbotResponse:
       "メッセージをいただきありがとうございます。担当者が速やかにご連絡いたします。緊急のご用件は、カスタマーサービスまでお電話ください。",
     chatbotName: "エムランチャットボット",
+    chatbotProactiveDashboard: "ダッシュボードへようこそ！活動を記録したり、新しい目標を設定しますか？", // NEW
+    chatbotProactiveDashboardPrompt: "活動を記録したい", // NEW
 
     // Image Upload Features
     imageUploadPrompt: "クリップアイコンをクリックして画像をアップロード",
@@ -678,8 +708,15 @@ export const translations: { [key: string]: Translation } = {
     smtpError: "メールの送信に失敗しました",
     dbError: "データの保存に失敗しました",
     serverError: "サーバー構成エラー",
+
+    // Dashboard Specific (NEW)
+    noGoalsYet: "まだ目標が設定されていません。モチベーションを維持し、進捗を追跡するために目標を設定しましょう！",
+    addYourFirstGoal: "最初の目標を追加",
+    noActivitiesYet: "まだ活動が記録されていません。進捗を追跡し、連続記録を構築するために活動を記録しましょう！",
+    logFirstActivity: "最初の活動を記録",
   },
   zh: {
+    // ... (Your existing Chinese translations) ...
     // Navigation
     home: "首页",
     about: "关于我们",
@@ -821,6 +858,8 @@ export const translations: { [key: string]: Translation } = {
     chatbotWelcome: "您好！欢迎来到艾姆兰·加尼旭日印刷。今天我们能帮您什么？",
     chatbotResponse: "感谢您的留言。我们的团队将尽快联系您。",
     chatbotName: "艾姆兰聊天机器人",
+    chatbotProactiveDashboard: "欢迎来到您的仪表板！您想记录活动或设置新目标吗？", // NEW
+    chatbotProactiveDashboardPrompt: "我想记录一项活动", // NEW
 
     // Image Upload Features
     imageUploadPrompt: "点击回形针图标上传图片",
@@ -839,8 +878,15 @@ export const translations: { [key: string]: Translation } = {
     smtpError: "发送电子邮件失败",
     dbError: "保存数据失败",
     serverError: "服务器配置错误",
+
+    // Dashboard Specific (NEW)
+    noGoalsYet: "尚未设定目标。设定一些目标，帮助您保持积极性并跟踪进度！",
+    addYourFirstGoal: "添加您的第一个目标",
+    noActivitiesYet: "尚未记录活动。记录您的活动以跟踪进度并建立您的连胜记录！",
+    logFirstActivity: "记录您的第一个活动",
   },
   ar: {
+    // ... (Your existing Arabic translations) ...
     // Navigation
     home: "الرئيسية",
     about: "حول",
@@ -994,6 +1040,8 @@ export const translations: { [key: string]: Translation } = {
     chatbotResponse:
       "شكرًا لرسالتك. سيرد عليك أحد ممثلينا قريبًا. للحصول على مساعدة فورية، يرجى الاتصال بخط خدمة العملاء.",
     chatbotName: "إمران شات بوت",
+    chatbotProactiveDashboard: "مرحبًا بك في لوحة التحكم الخاصة بك! هل ترغب في تسجيل نشاط أو تحديد هدف جديد؟", // NEW
+    chatbotProactiveDashboardPrompt: "أريد تسجيل نشاط", // NEW
 
     // Image Upload Features
     imageUploadPrompt: "انقر على أيقونة المشبك لرفع صورة",
@@ -1012,5 +1060,11 @@ export const translations: { [key: string]: Translation } = {
     smtpError: "فشل إرسال البريد الإلكتروني",
     dbError: "فشل حفظ البيانات",
     serverError: "خطأ في تكوين الخادم",
+
+    // Dashboard Specific (NEW)
+    noGoalsYet: "لم يتم تعيين أهداف بعد. حدد بعض الأهداف لمساعدتك على البقاء متحفزًا وتتبع تقدمك!",
+    addYourFirstGoal: "أضف هدفك الأول",
+    noActivitiesYet: "لم يتم تسجيل أنشطة بعد. سجل أنشطتك لتتبع التقدم وبناء سلسلة نجاحك!",
+    logFirstActivity: "سجل نشاطك الأول",
   },
 };

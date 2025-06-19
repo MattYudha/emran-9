@@ -1,6 +1,8 @@
+// src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { ThemeProvider } from "./contexts/ThemeContext.tsx"
 import { LanguageProvider } from "./contexts/LanguageContext.tsx"
+import { ToastProvider } from "./components/ui/ToastContainer.tsx" // Import ToastProvider
 import Navbar from "./components/Navbar.tsx"
 import Footer from "./components/Footer.tsx"
 import Chatbot from "./components/Chatbot.tsx"
@@ -24,27 +26,29 @@ function App() {
     <Router>
       <LanguageProvider>
         <ThemeProvider>
-          <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<UserProfile />} />
-              <Route path="/business-cards" element={<BusinessCards />} />
-              <Route path="/brochures" element={<Brochures />} />
-              <Route path="/flyers" element={<Flyers />} />
-              <Route path="/banners" element={<Banners />} />
-              <Route path="/posters" element={<Posters />} />
-              <Route path="/logo-design" element={<LogoDesign />} />
-              <Route path="/brand-identity" element={<BrandIdentity />} />
-              <Route path="/packaging" element={<Packaging />} />
-              <Route path="/illustration" element={<Illustration />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Footer />
-            <Chatbot />
-          </div>
+          <ToastProvider> {/* Wrap aplikasi dengan ToastProvider */}
+            <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<UserProfile />} />
+                <Route path="/business-cards" element={<BusinessCards />} />
+                <Route path="/brochures" element={<Brochures />} />
+                <Route path="/flyers" element={<Flyers />} />
+                <Route path="/banners" element={<Banners />} />
+                <Route path="/posters" element={<Posters />} />
+                <Route path="/logo-design" element={<LogoDesign />} />
+                <Route path="/brand-identity" element={<BrandIdentity />} />
+                <Route path="/packaging" element={<Packaging />} />
+                <Route path="/illustration" element={<Illustration />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Footer />
+              <Chatbot />
+            </div>
+          </ToastProvider>
         </ThemeProvider>
       </LanguageProvider>
     </Router>
