@@ -55,32 +55,7 @@ Our platform serves as a digital hub for clients to explore our services, reques
 -   **HTTP Client:** `Axios`
 -   **UUID Generation:** `uuid`
 
-## 📁 Project Structure
 
-```text
-├── public/                       # Static assets (images, manifest.json, robots.txt)
-├── src/
-│   ├── api/                      # Supabase client initialization
-│   ├── components/               # Reusable UI components
-│   │   └── ui/                   # Generic UI components (e.g., Toast, Spinner)
-│   ├── contexts/                 # React Contexts (Language, Theme)
-│   ├── data/                     # Static data (e.g., printing specifications)
-│   ├── hooks/                    # Custom React hooks (e.g., useChatbotLogic, useAnalytics)
-│   ├── pages/                    # Main application pages (Home, Dashboard, Service pages, Admin)
-│   ├── reducers/                 # Reducers for useReducer (e.g., chatbotReducer)
-│   ├── services/                 # Business logic, API calls, and external service integrations
-│   ├── types/                    # TypeScript type definitions
-│   └── utils/                    # Utility functions, constants, and translations
-├── supabase/                     # Supabase project configuration, migrations, and Edge Functions
-├── .env.example                  # Environment variables template
-├── package.json                  # Project dependencies and scripts
-├── package-lock.json             # Locked dependencies
-├── vite.config.ts                # Vite build configuration
-├── tailwind.config.js            # Tailwind CSS configuration
-├── postcss.config.js             # PostCSS configuration
-├── eslint.config.js              # ESLint configuration
-├── tsconfig.json                 # TypeScript configuration
-└── README.md                     # This file
 
 
 ## Getting Started
@@ -197,6 +172,36 @@ This application is configured as a Progressive Web App (PWA). Once you visit th
 
 Contributing
 We welcome contributions! If you have suggestions for improvements or want to report a bug, please open an issue or submit a pull request.
+
+
+
+## 📁 Project Structure
+
+```text
+├── public/                       # Static assets (images, manifest.json, robots.txt)
+├── src/
+│   ├── api/                      # Supabase client initialization
+│   ├── components/               # Reusable UI components
+│   │   └── ui/                   # Generic UI components (e.g., Toast, Spinner)
+│   ├── contexts/                 # React Contexts (Language, Theme)
+│   ├── data/                     # Static data (e.g., printing specifications)
+│   ├── hooks/                    # Custom React hooks (e.g., useChatbotLogic, useAnalytics)
+│   ├── pages/                    # Main application pages (Home, Dashboard, Service pages, Admin)
+│   ├── reducers/                 # Reducers for useReducer (e.g., chatbotReducer)
+│   ├── services/                 # Business logic, API calls, and external service integrations
+│   ├── types/                    # TypeScript type definitions
+│   └── utils/                    # Utility functions, constants, and translations
+├── supabase/                     # Supabase project configuration, migrations, and Edge Functions
+├── .env.example                  # Environment variables template
+├── package.json                  # Project dependencies and scripts
+├── package-lock.json             # Locked dependencies
+├── vite.config.ts                # Vite build configuration
+├── tailwind.config.js            # Tailwind CSS configuration
+├── postcss.config.js             # PostCSS configuration
+├── eslint.config.js              # ESLint configuration
+├── tsconfig.json                 # TypeScript configuration
+└── README.md                     # This file
+##
 
 License
 This project is open-sourced under the MIT License. See the LICENSE file for more details.
