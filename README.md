@@ -1,207 +1,295 @@
-# Emran Ghani Asahi - Premium Printing & Design Solutions
+# Emran Design & Printing Services
 
-![Emran Ghani Asahi Logo](public/assets/logo.png)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Built with Deno](https://img.shields.io/badge/Built%20with-Deno-lightblue)](https://deno.land/)
+[![Powered by React](https://img.shields.io/badge/Powered%20by-React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Styled with Tailwind CSS](https://img.shields.io/badge/Styled%20with-TailwindCSS-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Backend by Supabase](https://img.shields.io/badge/Backend%20by-Supabase-007FFF?logo=supabase&logoColor=white)](https://supabase.com/)
+[![AI by Google Gemini](https://img.shields.io/badge/AI%20by-Google%20Gemini-orange?logo=google-gemini&logoColor=white)](https://ai.google.dev/models/gemini)
 
-## Overview
+Emran Design & Printing Services adalah aplikasi web *full-stack* yang modern dan interaktif, dirancang untuk memudahkan pelanggan dalam mendapatkan layanan desain grafis dan percetakan. Aplikasi ini didukung oleh teknologi terkini seperti React, TypeScript, Tailwind CSS untuk *frontend*, serta Deno dan Supabase untuk *backend*. Fitur unggulan termasuk sistem *Request for Quote* (RFQ) yang canggih dan *chatbot* berbasis AI yang didukung oleh Google Gemini.
 
-Welcome to **Emran Ghani Asahi**, a leading provider of premium printing and innovative design solutions. This repository hosts the source code for our comprehensive web application, built with cutting-edge technologies to deliver exceptional customer experiences and streamline our internal operations.
+## Daftar Isi
 
-Our platform serves as a digital hub for clients to explore our services, request quotes, engage with an AI-powered chatbot for instant assistance, and manage their personal activity dashboards. For our team, it provides robust administrative tools to manage client inquiries, RFQs, user data, and AI configurations, ensuring efficiency and data-driven decision-making.
+1.  [Fitur Utama](#fitur-utama)
+2.  [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+3.  [Struktur Proyek](#struktur-proyek)
+4.  [Cara Kerja Fitur Kompleks](#cara-kerja-fitur-kompleks)
+    * [Request for Quote (RFQ) System](#request-for-quote-rfq-system)
+    * [Chatbot Interaktif dengan AI Gemini](#chatbot-interaktif-dengan-ai-gemini)
+5.  [Instalasi dan Setup Proyek](#instalasi-dan-setup-proyek)
+    * [Prasyarat](#prasyarat)
+    * [Langkah-langkah Instalasi](#langkah-langkah-instalasi)
+6.  [Penggunaan Aplikasi](#penggunaan-aplikasi)
+7.  [Pengembangan (Development)](#pengembangan-development)
+8.  [Deployment](#deployment)
+9.  [Kontribusi](#kontribusi)
+10. [Lisensi](#lisensi)
 
-## Features
+---
 
-### Public Website
--   **Modern & Responsive UI:** Built with React, TypeScript, and Tailwind CSS for a seamless experience across all devices.
--   **Multi-Language Support:** Available in Indonesian, English, Japanese, Chinese, and Arabic for a global audience.
--   **Dynamic Content Sections:** Explore our services, company overview, expert team, diverse portfolio, and contact information.
--   **Interactive Contact Form:** Securely submit inquiries via our integrated contact form, powered by Supabase Edge Functions and EmailJS.
--   **Progressive Web App (PWA):** Offers an app-like experience with offline capabilities and installability.
+## 1. Fitur Utama
 
-### AI-Powered Chatbot
--   **Intelligent Assistant:** Provides instant answers to common questions about our services, pricing, and company details.
--   **Image Analysis:** Users can upload images for AI-driven analysis and personalized printing recommendations (powered by Google Gemini API).
--   **Dynamic Suggestions:** Offers context-aware response suggestions to guide user conversations.
--   **RFQ Triggering:** Seamlessly guides users to our detailed Request for Quote (RFQ) form.
--   **Feedback Mechanism:** Collects user feedback on AI responses to continuously improve accuracy and helpfulness.
+Aplikasi ini menyediakan berbagai fitur untuk memberikan pengalaman terbaik bagi pengguna dan efisiensi dalam pengelolaan layanan:
 
-### User Dashboard (Authenticated Users)
--   **Personalized Profile:** Users can manage their profile details, including avatar uploads, and view personal metrics.
--   **Activity Logger:** Track daily activities and mood scores, fostering a productive routine.
--   **Progress Tracking:** Visualize personal progress with charts showing activity trends and goal completion rates.
--   **Goal Management:** Set, track, and manage personal printing-related or productivity goals.
--   **Notification Center:** Receive important updates and alerts directly within the application.
+* **Layanan Percetakan & Desain**: Halaman khusus untuk berbagai layanan seperti Brosur, Kartu Nama, Flyer, Ilustrasi, Desain Logo, Kemasan, Poster, Spanduk, dan Identitas Merek.
+* **Sistem Request for Quote (RFQ)**: Memungkinkan pengguna untuk mengajukan permintaan penawaran harga secara detail untuk proyek mereka.
+* **Chatbot Interaktif**: Asisten virtual yang didukung oleh Google Gemini untuk menjawab pertanyaan umum dan membantu pengguna.
+* **Autentikasi Pengguna**: Sistem pendaftaran dan login aman melalui Supabase.
+* **Profil Pengguna & Dashboard**: Pengguna dapat mengelola informasi profil dan melihat riwayat RFQ mereka.
+* **Dashboard Admin**: Antarmuka untuk administrator mengelola RFQ, pengguna, dan memantau aktivitas.
+* **Notifikasi Real-time**: Pengguna akan menerima notifikasi terkait status RFQ mereka.
+* **Dukungan Multi-Bahasa**: Aplikasi dapat dialihkan antara bahasa yang berbeda (`id` dan `en`).
+* **Progressive Web App (PWA)**: Dapat diinstal di perangkat pengguna dan bekerja secara *offline*.
+* **Desain Responsif**: Antarmuka yang adaptif dan optimal di berbagai ukuran layar (desktop, tablet, mobile) menggunakan Tailwind CSS.
+* **Analitik Pengguna**: Mengumpulkan data penggunaan untuk analisis dan peningkatan layanan.
+* **Sistem Feedback**: Tombol dan mekanisme untuk pengguna memberikan umpan balik.
+
+## 2. Teknologi yang Digunakan
+
+* **Frontend**:
+    * **React**: Pustaka JavaScript untuk membangun antarmuka pengguna.
+    * **TypeScript**: Superset JavaScript yang menambahkan *static typing* untuk kode yang lebih kokoh.
+    * **Tailwind CSS**: *Framework* CSS utility-first untuk *styling* yang cepat dan kustomisasi tinggi.
+    * **Vite**: *Build tool* dan *dev server* yang cepat untuk proyek *frontend*.
+    * **React Router DOM**: Untuk *routing* navigasi dalam aplikasi *single-page*.
+* **Backend & Database**:
+    * **Supabase**: Backend-as-a-Service yang menyediakan database PostgreSQL, otentikasi, dan *Edge Functions*.
+    * **Deno**: *Runtime* JavaScript/TypeScript yang aman dan berkinerja tinggi, digunakan untuk *Supabase Edge Functions*.
+* **AI**:
+    * **Google Gemini API**: Digunakan untuk menggerakkan *chatbot* interaktif.
+* **Lain-lain**:
+    * **ESLint**: Alat *linting* untuk menjaga kualitas dan konsistensi kode.
+    * **PostCSS**: Alat untuk memproses CSS dengan *plugin* (digunakan oleh Tailwind CSS).
+
+## 3. Struktur Proyek
+
+Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan:
+
+.
+├── public/                 # File statis (manifest.json, robots.txt)
+├── src/
+│   ├── api/                # Konfigurasi klien API (Supabase)
+│   ├── components/         # Komponen UI yang dapat digunakan kembali
+│   │   └── ui/             # Komponen UI dasar (LoadingSpinner, ToastContainer, MapComponent)
+│   ├── contexts/           # Konteks React untuk manajemen status global (Language, Theme)
+│   ├── data/               # Data statis atau konfigurasi aplikasi
+│   ├── hooks/              # Custom React Hooks untuk logika reusable
+│   ├── pages/              # Komponen halaman utama aplikasi (Home, AdminDashboard, Layanan, dll.)
+│   ├── reducers/           # Reducer untuk manajemen status kompleks (misalnya, chatbotReducer)
+│   ├── services/           # Logika bisnis dan interaksi dengan API eksternal (Gemini, RFQ, Analytics)
+│   ├── types/              # Definisi tipe TypeScript global (interface, type aliases)
+│   ├── utils/              # Fungsi utilitas umum (helpers, validation, translations)
+│   ├── App.tsx             # Komponen utama aplikasi, mengatur routing
+│   ├── index.css           # Styling CSS utama (termasuk Tailwind CSS)
+│   └── main.tsx            # Entry point aplikasi React
+├── supabase/
+│   ├── functions/          # Deno Edge Functions (rfq-notification, send-email)
+│   ├── migrations/         # Skema database Supabase
+│   └── config.toml         # Konfigurasi Supabase CLI
+├── dev-dist/               # Output build untuk pengembangan
+├── dist/                   # Output build untuk produksi
+├── .env.example            # Contoh variabel lingkungan
+├── deno.json               # Konfigurasi Deno
+├── eslint.config.js        # Konfigurasi ESLint
+├── package.json            # Dependencies dan scripts proyek
+├── postcss.config.js       # Konfigurasi PostCSS
+├── README.md               # Dokumentasi proyek (file ini)
+├── tailwind.config.js      # Konfigurasi Tailwind CSS
+├── tsconfig.json           # Konfigurasi TypeScript
+├── vite.config.ts          # Konfigurasi Vite
+└── ...
+
+
+## 4. Cara Kerja Fitur Kompleks
 
 ### Request for Quote (RFQ) System
--   **Multi-Step Form:** A user-friendly, guided process for submitting detailed printing and design requests.
--   **File Uploads:** Securely upload design files to Supabase Storage.
--   **Automated Notifications:** Triggers email notifications to our sales team upon submission.
 
-### Admin Dashboard
--   **Comprehensive Oversight:** Accessible only to authorized administrators for a holistic view of operations.
--   **Data Management:** Manage contact submissions, RFQ requests (with status updates), user profiles, user goals, and activities.
--   **AI Configuration:** Dynamically adjust AI parameters (e.g., temperature, topP, topK) for the chatbot via a dedicated interface.
--   **AI Feedback Review:** Monitor and review user feedback on AI responses, providing insights for AI model improvement.
--   **Analytics & Reporting:** Access detailed analytics events to understand user behavior and platform engagement.
--   **CSV Export:** Export critical data for further analysis or record-keeping.
+Sistem RFQ memungkinkan pengguna untuk mengajukan permintaan penawaran harga yang disesuaikan dengan kebutuhan proyek desain atau percetakan mereka.
 
-## Technologies Used
+**Cara Kerja:**
 
--   **Frontend:** `React.js`, `TypeScript`, `Vite`, `Tailwind CSS`, `Framer Motion`, `React Router DOM`, `Zod`, `React Hook Form`
--   **Backend:** `Supabase` (PostgreSQL Database, Authentication, Storage, Edge Functions)
--   **AI Model:** `Google Gemini API` (via custom service layer)
--   **Email Service:** `EmailJS` (for direct email sending from client-side)
--   **PWA:** `vite-plugin-pwa` (Workbox for service worker management)
--   **Linting:** `ESLint`, `TypeScript-ESLint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`
--   **HTTP Client:** `Axios`
--   **UUID Generation:** `uuid`
+1.  **Pengajuan RFQ (Frontend: `src/components/RFQForm.tsx`)**:
+    * Pengguna mengakses halaman layanan atau formulir RFQ.
+    * Mereka mengisi detail proyek seperti jenis layanan, spesifikasi, jumlah, *deadline*, dan informasi kontak.
+    * Data formulir divalidasi di *frontend* menggunakan `src/utils/validation.ts` sebelum pengiriman.
+    * Formulir mengirimkan data ke fungsi `rfqService.ts` yang bertanggung jawab untuk berinteraksi dengan Supabase.
 
+2.  **Penyimpanan Data (Backend: Supabase Database)**:
+    * `src/services/rfqService.ts` menggunakan `supabaseClient.ts` untuk menyisipkan data RFQ ke tabel `rfq_requests` di database Supabase.
+    * Skema database RFQ dikelola melalui migrasi SQL Supabase (misalnya, `supabase/migrations/20250526104834_late_oasis.sql`).
 
+3.  **Notifikasi Real-time (Supabase Edge Function: `supabase/functions/rfq-notification/index.ts`)**:
+    * Supabase dikonfigurasi untuk memicu *webhook* atau *trigger* database ketika entri baru ditambahkan ke tabel `rfq_requests`.
+    * *Trigger* ini akan memanggil *Supabase Edge Function* `rfq-notification` yang ditulis dalam Deno.
+    * Fungsi ini bertanggung jawab untuk:
+        * Mengambil detail RFQ yang baru.
+        * Mengirim notifikasi ke admin (misalnya, melalui email atau *dashboard* admin) bahwa ada RFQ baru.
+        * Mungkin juga mengirim notifikasi konfirmasi ke pengguna yang mengajukan RFQ.
+    * Notifikasi di *frontend* dikelola oleh `src/components/NotificationCenter.tsx`.
 
+4.  **Manajemen Admin (Frontend: `src/pages/AdminDashboard.tsx`)**:
+    * Administrator dapat masuk ke `AdminDashboard` mereka.
+    * *Dashboard* ini akan menampilkan daftar RFQ yang masuk, memungkinkan admin untuk melihat detail, mengubah status (misalnya, "Pending", "Reviewed", "Completed"), dan berkomunikasi dengan pelanggan.
+    * Admin dapat menggunakan fitur *user management* (`src/components/UserProfileManager.tsx`) untuk mengelola pengguna terkait RFQ.
 
-## Getting Started
+**Cara Menggunakan RFQ System:**
 
-To set up and run this project locally, please follow these steps:
+1.  **Sebagai Pelanggan**:
+    * Navigasi ke halaman layanan (`/services`) atau halaman RFQ (`/rfq`).
+    * Isi formulir dengan detail proyek Anda. Pastikan semua informasi yang diperlukan terisi dengan benar.
+    * Klik tombol "Submit" atau "Ajukan Penawaran".
+    * Anda akan menerima konfirmasi pengajuan dan notifikasi status RFQ Anda di dalam aplikasi (jika Anda login) atau melalui email.
+2.  **Sebagai Administrator**:
+    * Login sebagai administrator.
+    * Akses `/admin/dashboard`.
+    * Di dasbor, Anda akan melihat daftar RFQ yang masuk. Klik pada RFQ tertentu untuk melihat detailnya, mengubah status, dan mengambil tindakan yang diperlukan.
 
-### Prerequisites
+### Chatbot Interaktif dengan AI Gemini
 
--   Node.js (v18.x or higher recommended)
--   npm (or Yarn/pnpm)
--   A Supabase account and project
--   A Google Cloud project with Gemini API enabled
--   An EmailJS account
+*Chatbot* ini dirancang untuk memberikan jawaban instan atas pertanyaan umum pengguna tentang layanan percetakan dan desain, membantu navigasi, atau bahkan memberikan estimasi awal.
 
-### 1. Clone the Repository
+**Cara Kerja:**
 
-```bash
-git clone <your-repository-url>
-cd emran-9
-2. Install Dependencies
-Bash
+1.  **Antarmuka Chatbot (Frontend: `src/components/Chatbot.tsx`)**:
+    * Komponen `Chatbot.tsx` menyediakan antarmuka pengguna untuk interaksi dengan *chatbot*.
+    * Ini menampilkan riwayat percakapan (`src/components/ChatbotMessage.tsx`) dan *input field* untuk pengguna.
+    * Logika utama *chatbot* dikelola oleh *custom hook* `src/hooks/useChatbotLogic.ts`.
 
-npm install
-# or yarn install
-# or pnpm install
-3. Configure Environment Variables
-Create a .env.local file in the root directory of the project and add the following environment variables:
+2.  **Manajemen Status Chatbot (Frontend: `src/reducers/chatbotReducer.ts`)**:
+    * `chatbotReducer.ts` mengelola status percakapan *chatbot*, termasuk riwayat pesan, status *loading*, dan potensi error. Ini memastikan aliran data yang terprediksi.
 
-# Supabase Configuration
-VITE_SUPABASE_URL="YOUR_SUPABASE_PROJECT_URL"
-VITE_SUPABASE_ANON_KEY="YOUR_SUPABASE_ANON_KEY"
+3.  **Interaksi dengan Gemini API (Frontend: `src/services/geminiService.ts`)**:
+    * Ketika pengguna mengirim pesan, `useChatbotLogic.ts` akan memanggil `src/services/geminiService.ts`.
+    * `geminiService.ts` bertanggung jawab untuk mengirim permintaan ke Google Gemini API dengan pesan pengguna.
+    * Respons dari Gemini API kemudian akan diterima dan diproses. Konfigurasi AI (model, parameter) dapat diatur melalui `src/services/aiConfigService.ts` dan `src/utils/gemini.ts`.
 
-# Google Gemini API Key
-VITE_GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+4.  **Pemrosesan dan Tampilan Respons**:
+    * Respons dari Gemini API kemudian dikirim kembali ke `useChatbotLogic.ts` dan `chatbotReducer` untuk memperbarui status percakapan.
+    * Pesan respons dari *chatbot* akan ditampilkan di antarmuka `Chatbot.tsx`.
 
-# EmailJS Configuration (for Contact Form and RFQ Notifications)
-VITE_EMAILJS_SERVICE_ID="YOUR_EMAILJS_SERVICE_ID"
-VITE_EMAILJS_TEMPLATE_ID="YOUR_EMAILJS_CONTACT_TEMPLATE_ID"
-VITE_RFQ_EMAIL_TEMPLATE_ID="YOUR_EMAILJS_RFQ_TEMPLATE_ID" # Optional, if different template for RFQ
-VITE_EMAILJS_PUBLIC_KEY="YOUR_EMAILJS_PUBLIC_KEY"
-VITE_EMAILJS_TO_EMAIL="YOUR_COMPANY_RECEIVER_EMAIL" # Email address where contact forms and RFQs will be sent
-Note: Ensure you replace the placeholder values with your actual API keys and URLs.
+5.  **Umpan Balik AI (Frontend: `src/services/aiFeedbackService.ts`)**:
+    * Pengguna dapat memberikan umpan balik (suka/tidak suka) terhadap respons *chatbot*.
+    * Umpan balik ini dikirimkan melalui `aiFeedbackService.ts` ke *backend* (misalnya, Supabase) untuk tujuan peningkatan model AI di masa mendatang.
 
-4. Set Up Supabase Project
-a. Initialize Supabase CLI
-First, install the Supabase CLI if you haven't already:
+**Cara Menggunakan Chatbot:**
 
-Bash
+1.  **Mengakses Chatbot**:
+    * Cari ikon *chatbot* (biasanya di sudut bawah halaman). Klik ikon tersebut untuk membuka jendela *chatbot*.
+2.  **Memulai Percakapan**:
+    * Ketik pertanyaan Anda di *input field* yang tersedia dan tekan Enter atau tombol kirim.
+    * Contoh pertanyaan: "Apa saja layanan desain yang tersedia?", "Bagaimana cara mengajukan RFQ?", "Berapa lama proses pencetakan brosur?".
+3.  **Memberikan Umpan Balik**:
+    * Setelah *chatbot* memberikan respons, Anda mungkin melihat ikon "suka" atau "tidak suka". Klik ikon tersebut untuk memberikan umpan balik tentang kualitas jawaban.
 
-npm install -g supabase
-Then, link your local project to your Supabase project:
+## 5. Instalasi dan Setup Proyek
 
-Bash
+### Prasyarat
 
-supabase login
-supabase link --project-ref your-project-ref
-b. Run Migrations
-Apply the database schema migrations to your Supabase project. These migrations will create all necessary tables, RLS policies, and functions.
+Sebelum memulai, pastikan Anda telah menginstal yang berikut ini:
 
-Bash
+* [Node.js](https://nodejs.org/) (versi terbaru yang stabil, disarankan v18+)
+* [npm](https://www.npmjs.com/) atau [Yarn](https://yarnpkg.com/) (npm biasanya sudah terinstal dengan Node.js)
+* [Deno](https://deno.land/) (versi terbaru yang stabil)
+* [Supabase CLI](https://supabase.com/docs/guides/cli)
+* Akun Google Cloud Platform untuk akses [Google Gemini API](https://ai.google.dev/models/gemini)
+* Akun Supabase.
 
-supabase db push
-c. Deploy Edge Functions
-Deploy the Supabase Edge Functions for send-email and rfq-notification:
+### Langkah-langkah Instalasi
 
-Bash
+1.  **Clone Repositori:**
+    ```bash
+    git clone [https://github.com/emran-9/emran-9.git](https://github.com/emran-9/emran-9.git)
+    cd emran-9
+    ```
 
-# First, ensure your .env.local variables are accessible by the CLI
-# For send-email function
-supabase functions deploy send-email --no-verify-jwt --env-file .env.local
+2.  **Instal Dependencies Frontend:**
+    ```bash
+    npm install
+    # atau yarn install
+    ```
 
-# For rfq-notification function (if you want to handle RFQ notifications via Supabase Function)
-supabase functions deploy rfq-notification --no-verify-jwt --env-file .env.local
-Important: Make sure SUPABASE_SERVICE_ROLE_KEY is set in your Supabase project's secrets for the send-email and rfq-notification functions to access the database with elevated privileges.
+3.  **Konfigurasi Variabel Lingkungan:**
+    Buat file `.env.local` di root proyek Anda berdasarkan `.env.example`.
+    ```
+    VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+    VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+    VITE_GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+    ```
+    * `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` dapat Anda temukan di *Project Settings* Supabase Anda (API Settings).
+    * `VITE_GEMINI_API_KEY` adalah kunci API dari Google Gemini Anda.
 
-d. Configure RLS (Row Level Security)
-RLS policies are defined in the migration files (supabase/migrations/*.sql) and are applied with supabase db push. Verify these policies are correctly applied in your Supabase dashboard to ensure data security.
+4.  **Setup Supabase Lokal (Opsional, untuk Pengembangan Lokal):**
+    Jika Anda ingin mengembangkan fungsi Supabase secara lokal:
+    ```bash
+    supabase init
+    supabase start
+    supabase migration list # Pastikan migrasi sudah diterapkan
+    supabase functions serve --watch # Untuk menjalankan Edge Functions secara lokal
+    ```
+    Pastikan database Supabase Anda terisi dengan skema dari `supabase/migrations/`. Anda mungkin perlu menjalankan migrasi secara manual jika belum terotomatisasi.
 
-5. Start the Development Server
-Bash
+## 6. Penggunaan Aplikasi
 
-npm run dev
-# or yarn dev
-# or pnpm dev
-The application should now be running at http://localhost:5173 (or another port if 5173 is in use).
+Setelah instalasi selesai:
 
-6. Build for Production
-Bash
+1.  **Jalankan Aplikasi Frontend:**
+    ```bash
+    npm run dev
+    # atau yarn dev
+    ```
+    Aplikasi akan berjalan di `http://localhost:5173` (atau port lain yang tersedia).
 
-npm run build
-# or yarn build
-# or pnpm build
-This will create a dist directory with the optimized production build.
+2.  **Akses Aplikasi:**
+    Buka *browser* Anda dan navigasikan ke alamat yang ditampilkan di konsol.
 
-Usage
-Public Website
-Navigate to the deployed URL or http://localhost:5173 to browse the website. Explore the different service pages, learn about our company, view our portfolio, and use the contact form.
+## 7. Pengembangan (Development)
 
-Chatbot
-Click the chat icon on the bottom right to open the chatbot. You can ask questions about our services, materials, pricing, or even upload an image for AI analysis.
+* **Menjalankan Linter:**
+    ```bash
+    npm run lint
+    ```
+* **Menjalankan Pengujian (jika ada):**
+    ```bash
+    npm run test # Asumsi ada script test di package.json
+    ```
+* **Menulis Kode:**
+    Ikuti struktur proyek dan konvensi penamaan. Manfaatkan TypeScript untuk *type safety* dan Tailwind CSS untuk *styling*.
 
-User Dashboard
-Sign Up: Click "Sign Up" in the navigation bar to create an account.
-Sign In: Log in with your credentials.
-Access Dashboard: Once logged in, a "Dashboard" link will appear in the user menu. Here, you can log activities, set goals, and view your progress.
-Admin Dashboard
-To access the admin dashboard:
+## 8. Deployment
 
-Log in with a user account.
-Manually update the role column for your user's id in the profiles table within your Supabase dashboard to 'admin'.
-Refresh the application. An "Admin Dashboard" link will now be visible in the user menu.
-PWA Capabilities
-This application is configured as a Progressive Web App (PWA). Once you visit the site, your browser may prompt you to install it. After installation, you can access the application directly from your device's home screen and benefit from offline caching.
+Proyek ini dirancang untuk dapat di-deploy ke berbagai platform *hosting*.
 
-Contributing
-We welcome contributions! If you have suggestions for improvements or want to report a bug, please open an issue or submit a pull request.
+* **Frontend Deployment**:
+    * Untuk menghasilkan *build* produksi:
+        ```bash
+        npm run build
+        ```
+    * Output akan berada di direktori `dist/`. Anda bisa me-*deploy* direktori ini ke *static site hosting* seperti Netlify, Vercel, Firebase Hosting, atau GitHub Pages.
 
+* **Supabase Backend**:
+    * Database dan otentikasi di-host oleh Supabase secara otomatis.
+    * *Supabase Edge Functions* (Deno) perlu di-*deploy* ke Supabase:
+        ```bash
+        supabase functions deploy rfq-notification
+        supabase functions deploy send-email
+        # Deploy semua fungsi secara manual atau gunakan CI/CD
+        ```
 
+## 9. Kontribusi
 
-## 📁 Project Structure
+Jika Anda ingin berkontribusi pada proyek ini, silakan ikuti langkah-langkah berikut:
 
-```text
-├── public/                       # Static assets (images, manifest.json, robots.txt)
-├── src/
-│   ├── api/                      # Supabase client initialization
-│   ├── components/               # Reusable UI components
-│   │   └── ui/                   # Generic UI components (e.g., Toast, Spinner)
-│   ├── contexts/                 # React Contexts (Language, Theme)
-│   ├── data/                     # Static data (e.g., printing specifications)
-│   ├── hooks/                    # Custom React hooks (e.g., useChatbotLogic, useAnalytics)
-│   ├── pages/                    # Main application pages (Home, Dashboard, Service pages, Admin)
-│   ├── reducers/                 # Reducers for useReducer (e.g., chatbotReducer)
-│   ├── services/                 # Business logic, API calls, and external service integrations
-│   ├── types/                    # TypeScript type definitions
-│   └── utils/                    # Utility functions, constants, and translations
-├── supabase/                     # Supabase project configuration, migrations, and Edge Functions
-├── .env.example                  # Environment variables template
-├── package.json                  # Project dependencies and scripts
-├── package-lock.json             # Locked dependencies
-├── vite.config.ts                # Vite build configuration
-├── tailwind.config.js            # Tailwind CSS configuration
-├── postcss.config.js             # PostCSS configuration
-├── eslint.config.js              # ESLint configuration
-├── tsconfig.json                 # TypeScript configuration
-└── README.md                     # This file
-##
+1.  *Fork* repositori ini.
+2.  Buat *branch* baru untuk fitur atau *bugfix* Anda (`git checkout -b feature/nama-fitur-baru`).
+3.  Lakukan perubahan Anda.
+4.  Pastikan semua *linting* dan pengujian lulus.
+5.  *Commit* perubahan Anda (`git commit -m 'feat: menambahkan fitur baru'`).
+6.  *Push* ke *branch* Anda (`git push origin feature/nama-fitur-baru`).
+7.  Buat *Pull Request* baru.
 
-License
-This project is open-sourced under the MIT License. See the LICENSE file for more details.
+## 10. Lisensi
+
+Proyek ini dilisensikan di bawah [Lisensi MIT](LICENSE).
+
+---
