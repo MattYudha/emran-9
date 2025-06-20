@@ -1,5 +1,7 @@
 # Emran Design & Printing Services
 
+![Emran Ghani Asahi Logo](public/assets/logo.png)
+
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Built with Deno](https://img.shields.io/badge/Built%20with-Deno-lightblue)](https://deno.land/)
 [![Powered by React](https://img.shields.io/badge/Powered%20by-React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
@@ -67,7 +69,7 @@ Aplikasi ini menyediakan berbagai fitur untuk memberikan pengalaman terbaik bagi
 Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan:
 
 .
-├── public/                 # File statis (manifest.json, robots.txt)
+├── public/                 # File statis (manifest.json, robots.txt, logo.png)
 ├── src/
 │   ├── api/                # Konfigurasi klien API (Supabase)
 │   ├── components/         # Komponen UI yang dapat digunakan kembali
@@ -99,7 +101,6 @@ Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan
 ├── tsconfig.json           # Konfigurasi TypeScript
 ├── vite.config.ts          # Konfigurasi Vite
 └── ...
-
 
 ## 4. Cara Kerja Fitur Kompleks
 
@@ -293,3 +294,5 @@ Jika Anda ingin berkontribusi pada proyek ini, silakan ikuti langkah-langkah ber
 Proyek ini dilisensikan di bawah [Lisensi MIT](LICENSE).
 
 ---
+
+
