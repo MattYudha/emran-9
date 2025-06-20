@@ -68,6 +68,8 @@ Aplikasi ini menyediakan berbagai fitur untuk memberikan pengalaman terbaik bagi
 
 Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan:
 
+
+
 .
 ├── public/                 # File statis (manifest.json, robots.txt, logo.png)
 ├── src/
@@ -85,12 +87,12 @@ Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan
 │   ├── App.tsx             # Komponen utama aplikasi, mengatur routing
 │   ├── index.css           # Styling CSS utama (termasuk Tailwind CSS)
 │   └── main.tsx            # Entry point aplikasi React
-├── supabase/
+├── supabase/               # Konfigurasi dan fungsi terkait Supabase
 │   ├── functions/          # Deno Edge Functions (rfq-notification, send-email)
 │   ├── migrations/         # Skema database Supabase
 │   └── config.toml         # Konfigurasi Supabase CLI
-├── dev-dist/               # Output build untuk pengembangan
-├── dist/                   # Output build untuk produksi
+├── dev-dist/               # Output build untuk pengembangan (biasanya diabaikan di .gitignore)
+├── dist/                   # Output build untuk produksi (siap untuk deployment)
 ├── .env.example            # Contoh variabel lingkungan
 ├── deno.json               # Konfigurasi Deno
 ├── eslint.config.js        # Konfigurasi ESLint
@@ -100,7 +102,7 @@ Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan
 ├── tailwind.config.js      # Konfigurasi Tailwind CSS
 ├── tsconfig.json           # Konfigurasi TypeScript
 ├── vite.config.ts          # Konfigurasi Vite
-└── ...
+└── ...                     # File dan direktori lain yang relevan
 
 ## 4. Cara Kerja Fitur Kompleks
 
