@@ -68,39 +68,8 @@ Aplikasi ini menyediakan berbagai fitur untuk memberikan pengalaman terbaik bagi
 
 Struktur direktori proyek dirancang untuk modularitas dan kemudahan pemeliharaan:
 
-.
-├── public/                 # File statis (manifest.json, robots.txt, logo.png)
-├── src/
-│   ├── api/                # Konfigurasi klien API (Supabase)
-│   ├── components/         # Komponen UI yang dapat digunakan kembali
-│   │   └── ui/             # Komponen UI dasar (LoadingSpinner, ToastContainer, MapComponent)
-│   ├── contexts/           # Konteks React untuk manajemen status global (Language, Theme)
-│   ├── data/               # Data statis atau konfigurasi aplikasi
-│   ├── hooks/              # Custom React Hooks untuk logika reusable
-│   ├── pages/              # Komponen halaman utama aplikasi (Home, AdminDashboard, Layanan, dll.)
-│   ├── reducers/           # Reducer untuk manajemen status kompleks (misalnya, chatbotReducer)
-│   ├── services/           # Logika bisnis dan interaksi dengan API eksternal (Gemini, RFQ, Analytics)
-│   ├── types/              # Definisi tipe TypeScript global (interface, type aliases)
-│   ├── utils/              # Fungsi utilitas umum (helpers, validation, translations)
-│   ├── App.tsx             # Komponen utama aplikasi, mengatur routing
-│   ├── index.css           # Styling CSS utama (termasuk Tailwind CSS)
-│   └── main.tsx            # Entry point aplikasi React
-├── supabase/
-│   ├── functions/          # Deno Edge Functions (rfq-notification, send-email)
-│   ├── migrations/         # Skema database Supabase
-│   └── config.toml         # Konfigurasi Supabase CLI
-├── dev-dist/               # Output build untuk pengembangan
-├── dist/                   # Output build untuk produksi
-├── .env.example            # Contoh variabel lingkungan
-├── deno.json               # Konfigurasi Deno
-├── eslint.config.js        # Konfigurasi ESLint
-├── package.json            # Dependencies dan scripts proyek
-├── postcss.config.js       # Konfigurasi PostCSS
-├── README.md               # Dokumentasi proyek (file ini)
-├── tailwind.config.js      # Konfigurasi Tailwind CSS
-├── tsconfig.json           # Konfigurasi TypeScript
-├── vite.config.ts          # Konfigurasi Vite
-└── ...
+<pre><code>``` . ├── public/ # File statis (manifest.json, robots.txt, logo.png) ├── src/ │ ├── api/ # Konfigurasi klien API (Supabase) │ ├── components/ # Komponen UI yang dapat digunakan kembali │ │ └── ui/ # Komponen UI dasar (LoadingSpinner, ToastContainer, MapComponent) │ ├── contexts/ # Konteks React (global state: Language, Theme) │ ├── data/ # Data statis atau konfigurasi aplikasi │ ├── hooks/ # Custom React Hooks (reusable logic) │ ├── pages/ # Halaman utama aplikasi (Home, AdminDashboard, Layanan, dll.) │ ├── reducers/ # Reducer state kompleks (misal: chatbotReducer) │ ├── services/ # Logika bisnis & API eksternal (Gemini, RFQ, Analytics) │ ├── types/ # Tipe global TypeScript (interface, alias) │ ├── utils/ # Fungsi utilitas (helpers, validation, translations) │ ├── App.tsx # Root component React & routing │ ├── index.css # Styling global (Tailwind CSS) │ └── main.tsx # Entry point aplikasi React ├── supabase/ │ ├── functions/ # Deno Edge Functions (rfq-notification, send-email) │ ├── migrations/ # Skema database Supabase │ └── config.toml # Konfigurasi Supabase CLI ├── dev-dist/ # Output build untuk pengembangan ├── dist/ # Output build untuk produksi ├── .env.example # Contoh variabel lingkungan ├── deno.json # Konfigurasi Deno ├── eslint.config.js # Konfigurasi ESLint ├── package.json # Dependencies & scripts proyek ├── postcss.config.js # Konfigurasi PostCSS ├── README.md # Dokumentasi proyek ├── tailwind.config.js # Konfigurasi Tailwind CSS ├── tsconfig.json # Konfigurasi TypeScript ├── vite.config.ts # Konfigurasi Vite └── ... ``` </code></pre>
+
 
 ## 4. Cara Kerja Fitur Kompleks
 
