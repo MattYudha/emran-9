@@ -1,12 +1,14 @@
+// src/components/NotificationCenter.tsx
 "use client"
 
 import type React from "react"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Bell, X, Check, Info, AlertTriangle, CheckCircle, XCircle, Settings } from "lucide-react"
+import { Bell, X, Check, Info, AlertTriangle, CheckCircle, XCircle, Settings, Loader2 } from "lucide-react" // Impor Loader2
 import { useLanguage } from "../contexts/LanguageContext"
 import { translations } from "../utils/translations"
 import { supabase } from "../api/supabaseClient"
+import { useToast } from "./ui/ToastContainer" // Impor useToast
 
 interface Notification {
   id: string
@@ -27,6 +29,7 @@ interface NotificationSettings {
 const NotificationCenter: React.FC = () => {
   const { language } = useLanguage()
   const t = translations[language]
+  const { showToast } = useToast(); // Inisialisasi useToast
 
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -37,7 +40,7 @@ const NotificationCenter: React.FC = () => {
     notify_weekly_summary: true,
   })
   const [showSettings, setShowSettings] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false) // Untuk pengaturan
 
   useEffect(() => {
     fetchNotifications()
@@ -45,32 +48,75 @@ const NotificationCenter: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    if (isOpen) {
-      fetchNotifications()
+    // Pastikan ini berjalan hanya setelah pengguna masuk dan tidak ada masalah autentikasi
+    const setupRealtime = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return; // Jangan setup jika tidak ada user
 
-      // Set up real-time subscription for notifications
-      const channel = supabase
-        .channel("notifications")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "notifications",
-            filter: `user_id=eq.${supabase.auth.getUser().then(({ data }) => data.user?.id)}`,
-          },
-          (payload) => {
-            console.log("Notification change received!", payload)
-            fetchNotifications()
-          },
-        )
-        .subscribe()
+        if (isOpen) {
+            // Fetch awal saat dibuka
+            fetchNotifications();
 
-      return () => {
-        supabase.removeChannel(channel)
-      }
-    }
-  }, [isOpen])
+            // Set up real-time subscription for notifications
+            const channel = supabase
+                .channel(`notifications_for_user_${user.id}`) // Nama channel unik per user
+                .on(
+                    "postgres_changes",
+                    {
+                        event: "*", // * berarti INSERT, UPDATE, DELETE
+                        schema: "public",
+                        table: "notifications",
+                        filter: `user_id=eq.${user.id}`, // Hanya notifikasi untuk user ini
+                    },
+                    (payload) => {
+                        console.log("Notification change received!", payload);
+                        // Periksa apakah notifikasi baru dan belum ada di state
+                        if (payload.eventType === 'INSERT') {
+                            const newNotif = payload.new as Notification;
+                            setNotifications(prev => [newNotif, ...prev.filter(n => n.id !== newNotif.id)]);
+                            // Tampilkan toast untuk notifikasi baru (opsional)
+                            showToast({
+                                title: newNotif.title,
+                                message: newNotif.message,
+                                type: newNotif.type,
+                                duration: 5000 // Tampilkan selama 5 detik
+                            });
+                        } else if (payload.eventType === 'UPDATE') {
+                            const updatedNotif = payload.new as Notification;
+                             setNotifications(prev => prev.map(n => n.id === updatedNotif.id ? updatedNotif : n));
+                        } else if (payload.eventType === 'DELETE') {
+                            const deletedNotif = payload.old.id;
+                            setNotifications(prev => prev.filter(n => n.id !== deletedNotif));
+                        }
+                    },
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
+        } else {
+            // Saat panel ditutup, hapus channel
+            const existingChannels = supabase.getChannels();
+            existingChannels.forEach(channel => {
+                if (channel.topic.startsWith('realtime:notifications_for_user_')) {
+                    supabase.removeChannel(channel);
+                }
+            });
+        }
+    };
+
+    setupRealtime(); // Panggil fungsi setup realtime
+
+    // Cleanup jika komponen unmount
+    return () => {
+        supabase.getChannels().forEach(channel => {
+            if (channel.topic.startsWith('realtime:notifications_for_user_')) {
+                supabase.removeChannel(channel);
+            }
+        });
+    };
+  }, [isOpen]); // Dependensi pada isOpen untuk mengaktifkan/menonaktifkan langganan
 
   const fetchNotifications = async () => {
     try {
@@ -84,7 +130,7 @@ const NotificationCenter: React.FC = () => {
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(20)
+        .limit(20) // Ambil 20 notifikasi terbaru
 
       if (error) throw error
       setNotifications(data || [])
@@ -102,7 +148,7 @@ const NotificationCenter: React.FC = () => {
 
       const { data, error } = await supabase.from("notification_settings").select("*").eq("user_id", user.id).single()
 
-      if (error && error.code !== "PGRST116") throw error
+      if (error && error.code !== "PGRST116") throw error // PGRST116 berarti tidak ada baris ditemukan (pengaturan belum ada)
       if (data) {
         setSettings({
           notify_activity_reminders: data.notify_activity_reminders,
@@ -110,9 +156,22 @@ const NotificationCenter: React.FC = () => {
           notify_risk_alerts: data.notify_risk_alerts,
           notify_weekly_summary: data.notify_weekly_summary,
         })
+      } else {
+        // Jika pengaturan tidak ada, buat entri default
+        const { error: insertError } = await supabase.from("notification_settings").insert([
+            { user_id: user.id }
+        ]);
+        if (insertError) throw insertError;
+        // Setelah insert, ambil lagi untuk memastikan state settings terisi
+        fetchNotificationSettings();
       }
     } catch (error) {
-      console.error("Error fetching notification settings:", error)
+      console.error("Error fetching/creating notification settings:", error)
+      showToast({
+        title: "Error",
+        message: "Gagal memuat pengaturan notifikasi.",
+        type: "error"
+      });
     }
   }
 
@@ -130,6 +189,11 @@ const NotificationCenter: React.FC = () => {
       )
     } catch (error) {
       console.error("Error marking notification as read:", error)
+      showToast({
+        title: "Error",
+        message: "Gagal menandai notifikasi sebagai sudah dibaca.",
+        type: "error"
+      });
     }
   }
 
@@ -149,8 +213,18 @@ const NotificationCenter: React.FC = () => {
       if (error) throw error
 
       setNotifications((prev) => prev.map((notif) => ({ ...notif, is_read: true })))
+      showToast({
+        title: "Berhasil!",
+        message: "Semua notifikasi telah ditandai sebagai sudah dibaca.",
+        type: "success"
+      });
     } catch (error) {
       console.error("Error marking all notifications as read:", error)
+      showToast({
+        title: "Error",
+        message: "Gagal menandai semua notifikasi sebagai sudah dibaca.",
+        type: "error"
+      });
     }
   }
 
@@ -160,19 +234,37 @@ const NotificationCenter: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        showToast({
+          title: "Error",
+          message: "Anda perlu masuk untuk menyimpan pengaturan.",
+          type: "error"
+        });
+        setLoading(false);
+        return;
+      }
 
       const { error } = await supabase.from("notification_settings").upsert({
-        user_id: user.id,
+        user_id: user.id, // Pastikan user_id disertakan untuk upsert
         ...newSettings,
         updated_at: new Date().toISOString(),
-      })
+      }, { onConflict: 'user_id' }); // Gunakan onConflict untuk memastikan upsert bekerja dengan baik
 
       if (error) throw error
 
       setSettings(newSettings)
+      showToast({
+        title: "Berhasil!",
+        message: "Pengaturan notifikasi berhasil diperbarui.",
+        type: "success"
+      });
     } catch (error) {
       console.error("Error updating notification settings:", error)
+      showToast({
+        title: "Error",
+        message: `Gagal memperbarui pengaturan: ${error instanceof Error ? error.message : String(error)}`,
+        type: "error"
+      });
     } finally {
       setLoading(false)
     }
@@ -232,7 +324,7 @@ const NotificationCenter: React.FC = () => {
                     onClick={() => setIsOpen(false)}
                     className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
               </div>
@@ -277,6 +369,7 @@ const NotificationCenter: React.FC = () => {
                           disabled={loading}
                           className="rounded border-gray-300 text-green-600 focus:ring-green-500"
                         />
+                        {loading && <Loader2 className="animate-spin h-4 w-4 text-green-500 ml-2" />}
                       </label>
                     ))}
                   </div>

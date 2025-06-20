@@ -1,3 +1,4 @@
+// src/components/ui/ToastContainer.tsx
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
@@ -36,7 +37,8 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     const id = Math.random().toString(36).substr(2, 9);
     const newToast = { ...toast, id };
     
-    setToasts(prev => [...prev, newToast]);
+    // Menambahkan notifikasi baru ke awal array agar yang terbaru muncul di atas
+    setToasts(prev => [newToast, ...prev]); 
 
     // Auto-hide after duration
     const duration = toast.duration || 5000;
@@ -64,7 +66,9 @@ interface ToastContainerProps {
 
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onHide }) => {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    // Mengubah posisi container dari top-4 menjadi bottom-4 (atau sesuaikan sesuai preferensi)
+    // atau tetap di top-4 tapi pastikan z-index nya tinggi
+    <div className="fixed top-4 right-4 z-50 space-y-2 flex flex-col items-end"> {/* Menambahkan flex-col items-end */}
       <AnimatePresence>
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onHide={onHide} />
@@ -104,32 +108,33 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onHide }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -50, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+      initial={{ opacity: 0, x: 100, scale: 0.9 }} 
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 100, scale: 0.9 }} 
       transition={{ duration: 0.3 }}
-      className={`max-w-sm w-full ${getBgColor()} border rounded-lg shadow-lg p-4`}
+      className={`max-w-sm w-auto ${getBgColor()} border rounded-lg shadow-lg p-4 relative overflow-hidden`} 
+      role="alert"
     >
-      <div className="flex items-start">
-        <div className="flex-shrink-0">
+      <div className="flex items-start space-x-3"> 
+        <div className="flex-shrink-0 pt-0.5"> 
           {getIcon()}
         </div>
-        <div className="ml-3 w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
+        <div className="flex-1 min-w-0 pr-6"> 
+          <p className="text-sm font-medium text-gray-900 dark:text-white leading-tight"> 
             {toast.title}
           </p>
           {toast.message && (
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-300 leading-snug"> 
               {toast.message}
             </p>
           )}
         </div>
-        <div className="ml-4 flex-shrink-0 flex">
+        <div className="absolute top-2 right-2 flex-shrink-0"> 
           <button
             onClick={() => onHide(toast.id)}
-            className="bg-white dark:bg-gray-800 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            className="p-1 rounded-md inline-flex text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" /> 
           </button>
         </div>
       </div>

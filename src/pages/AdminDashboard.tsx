@@ -26,9 +26,23 @@ import {
   Activity,
   Award
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  ReferenceLine,
+  Cell
+} from 'recharts'; // Import Recharts components
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../api/supabaseClient';
+import { analyticsService } from '../services/analyticsService'; // Import analyticsService
 
 // Import types from your d.ts files
 interface UserProfile {
@@ -118,7 +132,6 @@ interface AnalyticsEvent {
   ip_address?: string;
 }
 
-
 interface DashboardStats {
   totalContacts: number;
   totalRFQs: number;
@@ -162,6 +175,22 @@ interface RFQSubmission {
   updated_at: string;
 }
 
+interface MonthlyTrafficData {
+  month: string;
+  visitors: number;
+  year: number;
+}
+
+interface DailyTrafficData {
+  date: string;
+  visitors: number;
+}
+
+interface YoYGrowthData {
+  year: number;
+  month: string;
+  growth: number;
+}
 
 const AdminDashboard: React.FC = () => {
   const { language } = useLanguage();
@@ -186,6 +215,11 @@ const AdminDashboard: React.FC = () => {
   const [aiFeedbacks, setAiFeedbacks] = useState<AIFeedback[]>([]);
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>([]);
 
+  // NEW: State for chart data
+  const [monthlyTraffic, setMonthlyTraffic] = useState<MonthlyTrafficData[]>([]);
+  const [dailyTraffic, setDailyTraffic] = useState<DailyTrafficData[]>([]);
+  const [yoyGrowth, setYoYGrowth] = useState<YoYGrowthData[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // For RFQ and Feedback status filter
@@ -200,7 +234,13 @@ const AdminDashboard: React.FC = () => {
       try {
         await fetchDashboardStats();
         if (activeTab === 'overview') {
-          await Promise.all([fetchContacts(), fetchRFQs()]); // Only fetch top 5 for overview
+          await Promise.all([
+            fetchContacts(),
+            fetchRFQs(),
+            fetchMonthlyTraffic(), // Fetch data for charts
+            fetchDailyTraffic(),
+            fetchYoYGrowth()
+          ]);
         } else if (activeTab === 'contacts') {
           await fetchContacts();
         } else if (activeTab === 'rfqs') {
@@ -272,6 +312,34 @@ const AdminDashboard: React.FC = () => {
       todayContacts,
       todayRFQs
     });
+  };
+
+  // NEW: Functions to fetch chart data
+  const fetchMonthlyTraffic = async () => {
+    try {
+      const data = await analyticsService.getMonthlyWebsiteTraffic();
+      setMonthlyTraffic(data);
+    } catch (error) {
+      console.error('Error fetching monthly traffic:', error);
+    }
+  };
+
+  const fetchDailyTraffic = async () => {
+    try {
+      const data = await analyticsService.getDailyWebsiteTraffic();
+      setDailyTraffic(data);
+    } catch (error) {
+      console.error('Error fetching daily traffic:', error);
+    }
+  };
+
+  const fetchYoYGrowth = async () => {
+    try {
+      const data = await analyticsService.getYearOverYearGrowth();
+      setYoYGrowth(data);
+    } catch (error) {
+      console.error('Error fetching YoY growth:', error);
+    }
   };
 
   const fetchContacts = async () => {
@@ -720,8 +788,114 @@ const AdminDashboard: React.FC = () => {
                   className="space-y-6"
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Monthly Website Traffic Chart */}
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 h-80">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Monthly Website Traffic (Visitors)
+                      </h3>
+                      <ResponsiveContainer width="100%" height="80%">
+                        <BarChart
+                          data={monthlyTraffic}
+                          margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
+                          <XAxis dataKey="month" style={{ fontSize: '12px' }} />
+                          <YAxis style={{ fontSize: '12px' }} />
+                          <Tooltip cursor={{ fill: 'transparent' }} />
+                          <Bar dataKey="visitors" fill="#4CAF50" /> {/* Green color */}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Daily Website Traffic Histogram */}
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 h-80">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Distribution of Daily Website Traffic
+                      </h3>
+                      <ResponsiveContainer width="100%" height="80%">
+                         {/* Recharts doesn't have a direct "histogram" component, but you can simulate it with a BarChart where bins are pre-calculated or simply use the raw data if it represents daily counts */}
+                        <BarChart
+                          data={dailyTraffic}
+                          margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
+                          <XAxis dataKey="visitors" type="number" domain={['auto', 'auto']}
+                            tickFormatter={(value) => `${Math.floor(value/1000)}k`}
+                            label={{ value: 'Daily Visitors', position: 'insideBottom', offset: 0, fill: 'gray' }}
+                            style={{ fontSize: '12px' }}
+                          />
+                          <YAxis dataKey="count"
+                             label={{ value: 'Number of Days', angle: -90, position: 'insideLeft', fill: 'gray' }}
+                             style={{ fontSize: '12px' }}
+                          />
+                          <Tooltip formatter={(value: number) => [value, 'Days']} />
+                           {/* You would need to pre-process dailyTraffic into bins if you want a true histogram.
+                            For now, this treats each unique daily visitor count as a bar. */}
+                          <Bar dataKey="visitors" fill="#82ca9d" /> {/* Light green */}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Monthly Comparison (2022 vs 2023) */}
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 h-80">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                        Monthly Traffic Comparison (Current vs Previous Year)
+                      </h3>
+                      <ResponsiveContainer width="100%" height="80%">
+                        <BarChart
+                          data={monthlyTraffic} // Use monthly traffic, but ensure it has data for multiple years
+                          margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
+                          <XAxis dataKey="month" style={{ fontSize: '12px' }} />
+                          <YAxis style={{ fontSize: '12px' }} />
+                          <Tooltip />
+                          {/* To compare years, you'd need to restructure data like:
+                          [{ month: 'Jan', '2022': 10000, '2023': 12000 }, ...]
+                          For this example, we'll just show monthly traffic and mention comparison concept.*/}
+                          <Bar dataKey="visitors" fill="#8884d8" name="Current Year" />
+                           {/* You'd add another Bar for previous year's data if structured */}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Histogram: Distribution of YoY Growth */}
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 h-80">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            Distribution of Year-over-Year Growth (%)
+                        </h3>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <BarChart
+                                data={yoyGrowth}
+                                margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
+                                <XAxis dataKey="growth" type="number" 
+                                    tickFormatter={(value) => `${value}%`}
+                                    label={{ value: 'Year-over-Year Growth (%)', position: 'insideBottom', offset: 0, fill: 'gray' }}
+                                    style={{ fontSize: '12px' }}
+                                />
+                                <YAxis dataKey="count"
+                                    label={{ value: 'Frequency', angle: -90, position: 'insideLeft', fill: 'gray' }}
+                                    style={{ fontSize: '12px' }}
+                                />
+                                <Tooltip formatter={(value: number) => [`${value}%`, 'Frequency']} />
+                                {/* For a true histogram, yoyGrowth data should be binned by growth percentages.
+                                    Here, we'll display growth per month as bars. */}
+                                <Bar dataKey="growth" fill="#ff7f0e"> {/* Orange color */}
+                                    {/* You can add custom styling per bar here */}
+                                    {yoyGrowth.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.growth > 0 ? '#ff7f0e' : '#e74c3c'} />
+                                    ))}
+                                </Bar>
+                                {/* Example of a mean reference line */}
+                                <ReferenceLine x={41.2} stroke="red" strokeDasharray="3 3" label="Mean: 41.2%" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
                     {/* Recent Contacts */}
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 lg:col-span-1"> {/* Adjusted span */}
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                         Recent Contacts
                       </h3>
@@ -741,7 +915,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Recent RFQs */}
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 lg:col-span-1"> {/* Adjusted span */}
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                         Recent RFQs
                       </h3>
@@ -1345,7 +1519,6 @@ const AdminDashboard: React.FC = () => {
                 </motion.div>
               )}
 
-              {/* AI Config Tab */}
               {activeTab === 'ai_config' && (
                 <motion.div
                   key="ai_config"
@@ -1400,7 +1573,7 @@ const AdminDashboard: React.FC = () => {
                                 <input
                                     type={config.parameter_type === 'number' ? 'number' : 'text'}
                                     value={config.parameter_value}
-                                    onChange={(e) => updateAIConfigParameter(config.id, e.target.value)}
+                                    onChange={(e) => updateAIConfigParameter(config.id, parseFloat(e.target.value))} // Ensure number parsing
                                     className="w-24 px-2 py-1 border rounded-md dark:bg-gray-700 dark:text-white"
                                 />
                             </td>

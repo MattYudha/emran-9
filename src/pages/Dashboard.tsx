@@ -16,13 +16,27 @@ import {
   MessageSquare, 
   BarChart3,
   Eye, 
-  PieChart 
+  PieChart as PieChartIcon // <-- Diperbaiki: Mengganti nama impor PieChart dari lucide-react
 } from 'lucide-react';
+import { 
+  PieChart, // <-- Ini adalah PieChart dari recharts
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip,
+  Legend 
+} from 'recharts'; 
+
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../api/supabaseClient';
 import ActivityLogger from '../components/ActivityLogger';
-import ProgressChart from '../components/ProgressChart';
+import ProgressChart from '../components/ProgressChart'; 
 import { analyticsService } from '../services/analyticsService'; 
 
 interface UserGoal {
@@ -62,6 +76,12 @@ interface DashboardAnalyticsSummary {
   totalServicePageViews: number;
 }
 
+// NEW: Interface untuk data bagan
+interface ActivityTypeData {
+  name: string;
+  value: number;
+}
+
 const Dashboard: React.FC = () => {
   const { language } = useLanguage();
   const t = translations[language];
@@ -73,6 +93,10 @@ const Dashboard: React.FC = () => {
     totalChatbotInteractions: 0,
     totalServicePageViews: 0,
   });
+  // NEW: State untuk data bagan di dashboard user
+  const [activityTypeDistribution, setActivityTypeDistribution] = useState<ActivityTypeData[]>([]);
+  const [goalStatusDistribution, setGoalStatusDistribution] = useState<ActivityTypeData[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<UserGoal | null>(null);
@@ -104,7 +128,13 @@ const Dashboard: React.FC = () => {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(10); // Ambil 10 aktivitas terbaru
+
+      // Fetch ALL activities for distribution charts
+      const { data: allActivitiesData } = await supabase
+        .from('user_activities')
+        .select('activity_type')
+        .eq('user_id', user.id);
 
       // Fetch user profile
       const { data: profileData } = await supabase
@@ -113,13 +143,40 @@ const Dashboard: React.FC = () => {
         .eq('id', user.id)
         .single();
       
-      // NEW: Fetch dashboard analytics summary
+      // Fetch dashboard analytics summary
       const dashboardAnalytics = await analyticsService.getDashboardAnalyticsSummaryForUser(user.id);
 
       setGoals(goalsData || []);
       setActivities(activitiesData || []);
       setProfile(profileData);
       setAnalyticsSummary(dashboardAnalytics); 
+
+      // NEW: Proses data untuk distribusi jenis aktivitas
+      const activityTypeCounts = (allActivitiesData || []).reduce((acc, activity) => {
+        acc[activity.activity_type] = (acc[activity.activity_type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      setActivityTypeDistribution(
+        Object.entries(activityTypeCounts).map(([type, count]) => ({
+          name: getActivityTypeLabel(type), // Gunakan label terjemahan
+          value: count
+        }))
+      );
+
+      // NEW: Proses data untuk distribusi status tujuan
+      const goalStatusCountsMapped = goalsData?.reduce((acc, goal) => {
+        acc[goal.status] = (acc[goal.status] || 0) + 1;
+        return acc;
+      }, {} as Record<UserGoal['status'], number>);
+
+      setGoalStatusDistribution(
+        Object.entries(goalStatusCountsMapped || {}).map(([status, count]) => ({
+          name: status.replace('_', ' ').charAt(0).toUpperCase() + status.replace('_', ' ').slice(1), // Format "In progress"
+          value: count
+        }))
+      );
+
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
@@ -166,16 +223,20 @@ const Dashboard: React.FC = () => {
 
       if (error) throw error;
 
+      // Optimistic update, then re-fetch for full consistency
       setGoals(prev => prev.map(goal => 
         goal.id === goalId ? { ...goal, status: status as any } : goal
       ));
-      fetchUserData(); 
+      await fetchUserData(); // Re-fetch all data to update charts and counts
     } catch (error) {
       console.error('Error updating goal status:', error);
     }
   };
 
   const handleDeleteGoal = async (goalId: string) => {
+    if (!window.confirm(language === 'id' ? 'Apakah Anda yakin ingin menghapus tujuan ini?' : 'Are you sure you want to delete this goal?')) {
+      return;
+    }
     try {
       const { error } = await supabase
         .from('user_goals')
@@ -184,8 +245,9 @@ const Dashboard: React.FC = () => {
 
       if (error) throw error;
 
+      // Optimistic update, then re-fetch for full consistency
       setGoals(prev => prev.filter(goal => goal.id !== goalId));
-      fetchUserData(); 
+      await fetchUserData(); // Re-fetch all data to update charts and counts
     } catch (error) {
       console.error('Error deleting goal:', error);
     }
@@ -218,10 +280,10 @@ const Dashboard: React.FC = () => {
       'learning': { id: 'Pembelajaran', en: 'Learning' },
       'planning': { id: 'Perencanaan', en: 'Planning' }
     };
-    return labels[type]?.[language] || type;
+    return labels[type]?.[language] || type.replace('_', ' ').charAt(0).toUpperCase() + type.replace('_', ' ').slice(1);
   };
 
-  // NEW: Hitung rincian status tujuan
+  // Hitung rincian status tujuan (tidak berubah, digunakan untuk kartu statistik)
   const goalStatusCounts = goals.reduce((acc, goal) => {
     acc[goal.status] = (acc[goal.status] || 0) + 1;
     return acc;
@@ -230,6 +292,9 @@ const Dashboard: React.FC = () => {
   const totalGoals = goals.length;
   const completedGoals = goalStatusCounts.completed || 0;
   const goalCompletionRate = totalGoals > 0 ? ((completedGoals / totalGoals) * 100).toFixed(1) : '0.0';
+
+  // Warna untuk Pie Chart
+  const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF19A3'];
 
 
   if (loading) {
@@ -425,9 +490,40 @@ const Dashboard: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* NEW: Goal Status Breakdown - Simple visual text */}
-                      <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                      {/* Goal Status Breakdown - Pie Chart */}
+                      <div className="mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-center">
+                          {language === 'id' ? 'Distribusi Status Tujuan' : 'Goal Status Distribution'}
+                        </h3>
+                        {goalStatusDistribution.length > 0 ? (
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={goalStatusDistribution}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={80}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {goalStatusDistribution.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value: number) => [value, language === 'id' ? 'Tujuan' : 'Goals']} />
+                              <Legend />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="text-center text-gray-500 dark:text-gray-400 py-4">Tidak ada data tujuan untuk ditampilkan.</div>
+                        )}
+                      </div>
+
+                      {/* Goal Status Counts - Simple visual text (already exists) */}
+                      <div className="mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 text-center">
                           {t.dashboardGoalStatusBreakdown}
                         </h3>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
@@ -450,6 +546,7 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Goal List (already exists) */}
                       {goals.map((goal, index) => (
                         <motion.div
                           key={goal.id}
@@ -493,7 +590,6 @@ const Dashboard: React.FC = () => {
                                   <CheckCircle className="h-4 w-4" />
                                 </button>
                               )}
-                              {/* BARIS YANG DIMODIFIKASI UNTUK PERBAIKAN SINTAKS */}
                               <button
                                 onClick={() => setEditingGoal(goal)}
                                 className={"p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"}
@@ -521,8 +617,46 @@ const Dashboard: React.FC = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Progress Chart */}
+            {/* Progress Chart (Uses Recharts now) */}
             <ProgressChart />
+
+            {/* Activity Type Distribution Pie Chart */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white text-center">
+                        {language === 'id' ? 'Distribusi Jenis Aktivitas' : 'Activity Type Distribution'}
+                    </h2>
+                </div>
+                <div className="p-6">
+                    {activityTypeDistribution.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                                <Pie
+                                    data={activityTypeDistribution}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={80}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {activityTypeDistribution.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value: number) => [value, language === 'id' ? 'Aktivitas' : 'Activities']} />
+                                <Legend />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">{language === 'id' ? 'Tidak ada data jenis aktivitas.' : 'No activity type data yet.'}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* Recent Activities */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -531,7 +665,8 @@ const Dashboard: React.FC = () => {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                     {t.noActivitiesYet || 'Aktivitas Terbaru'}
                   </h2>
-                  {activities.length > 0 && <ActivityLogger onActivityLogged={fetchUserData} />}
+                  {/* ActivityLogger button is always shown now, text changes */}
+                  <ActivityLogger onActivityLogged={fetchUserData} buttonText={activities.length > 0 ? (language === 'id' ? 'Log Aktivitas Baru' : 'Log New Activity') : t.logFirstActivity} />
                 </div>
               </div>
               <div className="p-6">
@@ -541,6 +676,7 @@ const Dashboard: React.FC = () => {
                     <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
                       {t.noActivitiesYet}
                     </p>
+                    {/* Button with dynamic text based on whether there are activities */}
                     <ActivityLogger onActivityLogged={fetchUserData} 
                       buttonText={t.logFirstActivity}
                     />
