@@ -83,7 +83,7 @@ const Team: React.FC = () => {
       bio: t.productionManagerBio,
     },
     {
-      image: "assets/Stickerr.png",
+      image: "assets/stickerr.png",
       name: "STICKER DESIGN",
       position: t.salesDirector,
       bio: t.salesDirectorBio,

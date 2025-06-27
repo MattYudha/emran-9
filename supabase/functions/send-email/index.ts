@@ -1,239 +1,95 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { corsHeaders } from "../_shared/cors.ts"; // Pastikan file ini ada di lokasi yang benar!
 
 // Inisialisasi Supabase client
 const supabaseClient = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  Deno.env.get("SUPABASE_URL") ?? "", // SUPABASE_URL otomatis disediakan oleh Supabase
+  Deno.env.get("MY_SUPABASE_SERVICE_ROLE_KEY") ?? "" // <--- SUDAH DIGANTI KE NAMA SECRET YANG BARU
 );
 
 serve(async (req) => {
-  // Tambahkan header CORS
+  // Tambahkan header CORS untuk permintaan preflight (OPTIONS)
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { name, email, subject, message, lang } = await req.json(); // Ambil 'lang' juga
+    // Pastikan permintaan adalah JSON dan parse body-nya
+    const { name, email, subject, message } = await req.json();
 
+    // Validasi field yang diperlukan
     if (!name || !email || !subject || !message) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
+          status: 400, // Bad Request
         }
       );
     }
 
-    // Simpan ke database
+    // Simpan data formulir ke database Supabase di tabel 'contacts_submissions'
     const { error: insertError } = await supabaseClient
-      .from("contact_submissions") // Ubah dari 'contacts' ke 'contact_submissions'
-      .insert([{ name, email, subject, message, lang, user_agent: req.headers.get('User-Agent'), source_ip: req.headers.get('X-Forwarded-For') || req.url.split('/')[2] }]); // Tambahkan lang, user_agent, source_ip
+      .from("contact_submissions") // <--- Pastikan nama tabel ini benar 'contact_submissions'
+      .insert([{ name, email, subject, message }]);
 
+    // Tangani error jika penyisipan data gagal
     if (insertError) {
-      throw insertError;
+      throw insertError; // Lemparkan error agar ditangkap di blok catch di bawah
     }
 
-    // Tentukan teks berdasarkan bahasa
-    const isIndonesian = lang === 'id';
-    const thankYouTitle = isIndonesian ? "Terima Kasih atas Pesan Anda" : "Thank You for Your Message";
-    const greetingText = isIndonesian ? `Yth. ${name},<br><br>Kami telah menerima pesan Anda dan akan segera menanggapi dalam waktu dekat. Berikut adalah ringkasan dari pengiriman Anda:` : `Dear ${name},<br><br>We have received your message and will get back to you shortly. Here is a summary of your submission:`;
-    const contactInfoText = isIndonesian ? "Jika Anda memiliki pertanyaan lebih lanjut, jangan ragu untuk menghubungi kami melalui tombol di bawah ini." : "If you have any further questions, please do not hesitate to contact us via the button below.";
-    const contactButtonText = isIndonesian ? "Hubungi Kami" : "Contact Us";
-    const allRightsReservedText = isIndonesian ? "Hak Cipta Dilindungi" : "All rights reserved.";
-
-    // HTML email template
+    // --- BAGIAN DI BAWAH INI TELAH DIHAPUS/DIKOMENTARI ---
+    // Kode HTML email template dan pemanggilan fungsi rekursif
+    // telah dihapus karena pengiriman email ditangani di frontend (dengan EmailJS)
+    // dan pemanggilan rekursif menyebabkan loop tak terbatas/Error 500.
+    /*
     const htmlContent = `
       <!DOCTYPE html>
-      <html lang="${lang}">
+      <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${thankYouTitle} - PT Emran Ghanim Asahi</title>
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-            -ms-text-size-adjust: 100%;
-            -webkit-text-size-adjust: 100%;
-          }
-          .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            background: linear-gradient(135deg, #16a34a 0%, #a3e4b9 100%);
-            padding: 15px;
-            text-align: center;
-            position: relative;
-          }
-          .header img {
-            max-width: 100px;
-            height: auto;
-          }
-          .content {
-            padding: 30px;
-            color: #333333;
-          }
-          .content h2 {
-            color: #16a34a;
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-          }
-          .content p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin: 10px 0;
-          }
-          .content .field {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #f9fafb;
-            border-radius: 6px;
-          }
-          .content .field strong {
-            display: inline-block;
-            width: 120px;
-            color: #555555;
-            font-weight: 600;
-          }
-          .content .message {
-            background-color: #f0f9f0;
-            padding: 15px;
-            border-left: 4px solid #16a34a;
-            border-radius: 6px;
-            font-size: 16px;
-            line-height: 1.6;
-          }
-          .footer {
-            background-color: #f4f4f4;
-            padding: 20px;
-            text-align: center;
-            font-size: 14px;
-            color: #666666;
-          }
-          .footer a {
-            color: #16a34a;
-            text-decoration: none;
-            font-weight: 600;
-          }
-          .footer a:hover {
-            text-decoration: underline;
-          }
-          .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #16a34a;
-            color: #ffffff;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 16px;
-            margin-top: 20px;
-            min-width: 200px;
-          }
-          .button:hover {
-            background-color: #13863b;
-          }
-          @media only screen and (max-width: 600px) {
-            .container { margin: 10px; border-radius: 0; }
-            .header { padding: 10px; }
-            .header img { max-width: 80px; }
-            .content { padding: 15px; }
-            .content h2 { font-size: 20px; }
-            .content p { font-size: 14px; }
-            .content .field { padding: 8px; }
-            .content .field strong { width: 100%; display: block; margin-bottom: 5px; font-size: 14px; }
-            .content .message { padding: 10px; font-size: 14px; }
-            .button { display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; font-size: 16px; }
-            .footer { padding: 15px; font-size: 12px; }
-            .footer p { margin: 5px 0; }
-          }
-          @media only screen and (max-width: 400px) {
-            .content h2 { font-size: 18px; }
-            .content p { font-size: 13px; }
-            .content .field strong { font-size: 13px; }
-            .content .message { font-size: 13px; }
-            .button { font-size: 14px; padding: 10px; }
-          }
-        </style>
+        <style>...</style>
       </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <img src="https://emranghanisahi.netlify.app/assets/logo.png" alt="PT Company Emran Ghanim Asahi Logo">
-          </div>
-          <div class="content">
-            <h2>${thankYouTitle}</h2>
-            <p>${greetingText}</p>
-            <div class="field">
-              <strong>${isIndonesian ? "Nama:" : "Name:"}</strong> ${name}
-            </div>
-            <div class="field">
-              <strong>${isIndonesian ? "Email:" : "Email:"}</strong> ${email}
-            </div>
-            <div class="field">
-              <strong>${isIndonesian ? "Subjek:" : "Subject:"}</strong> ${subject}
-            </div>
-            <div class="field">
-              <strong>${isIndonesian ? "Pesan:" : "Message:"}</strong>
-              <div class="message">${message}</div>
-            </div>
-            <p>${contactInfoText}</p>
-            <a href="mailto:contact@company.com" class="button">${contactButtonText}</a>
-          </div>
-          <div class="footer">
-            <p><strong>PT Emran Ghanim Asahi</strong></p>
-            <p>The Avenue Blok Z.6, Jl. Citra Raya Boulevard No.36, Kec. Cikupa, Kabupaten Tangerang, Banten 15710 | <a href="mailto:emranghanimasahi@gmail.com">emranghanimasahi@gmail.com</a></p>
-            <p>&copy; ${new Date().getFullYear()} PT Emran Ghanim Asahi. ${allRightsReservedText}</p>
-          </div>
-        </div>
-      </body>
+      <body>...</body>
       </html>
     `;
 
-    // Kirim email notifikasi ke perusahaan
-    // Note: Anda perlu mengkonfigurasi email provider di Supabase untuk ini.
-    // Kode ini akan mencoba mengirim email melalui fungsi Supabase 'send-email'.
-    // Pastikan fungsi 'send-email' di Supabase Functions Anda dapat di-invoke
-    // dan memiliki konfigurasi SMTP yang benar.
-    const { error: companyMailError } = await supabaseClient.functions.invoke(
-      "send-email",
+    const { error: mailError } = await supabaseClient.functions.invoke(
+      "send-email", // Ini menyebabkan loop tak terbatas
       {
         body: {
-          to: Deno.env.get("COMPANY_EMAIL_RECEIVER") ?? "emranghanimasahi@gmail.com", // Gunakan env var atau default
+          to: "contact@company.com",
           subject: `New Contact Form Submission: ${subject}`,
           html: htmlContent,
         },
       }
     );
 
-    if (companyMailError) {
-      console.error("Error sending email to company:", companyMailError);
-      // Jangan throw error di sini agar form submission tetap berhasil
+    if (mailError) {
+      throw mailError;
     }
+    */
+    // --- AKHIR BAGIAN YANG DIHAPUS/DIKOMENTARI ---
 
+    // Jika semua proses berhasil, kirim respons sukses
     return new Response(JSON.stringify({ message: "Pesan berhasil dikirim" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
+      status: 200, // OK
     });
-  } catch (error: any) {
-    console.error("Function error:", error);
+  } catch (error) {
+    // Tangani error yang terjadi selama eksekusi fungsi
+    // Cetak pesan error yang lebih detail ke log Supabase
+    console.error("Function error:", error.message, error.stack);
+    // Atau bisa juga: console.error("Function error:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+
+    // Kirim respons error ke frontend
     return new Response(
       JSON.stringify({ error: error.message || "Terjadi kesalahan" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
+        status: 500, // Internal Server Error
       }
     );
   }

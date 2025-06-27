@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
 import { useLanguage } from "../contexts/LanguageContext.tsx";
 import { translations } from "../utils/translations.ts";
 import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
@@ -9,6 +10,7 @@ import {
   type ContactFormData,
 } from "../utils/validation.ts";
 import emailjs from "@emailjs/browser";
+import { generateConfirmationEmailHtml } from "../utils/confirmationEmailTemplate.ts"; // <-- Import fungsi ini
 
 const Contact: React.FC = () => {
   const { language } = useLanguage();
@@ -26,12 +28,34 @@ const Contact: React.FC = () => {
     resolver: zodResolver(contactFormSchema),
   });
 
+  // Inisialisasi EmailJS sekali saat komponen dimuat.
+  useEffect(() => {
+    const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    console.log(
+      "DEBUG (useEffect): VITE_EMAILJS_PUBLIC_KEY:",
+      emailjsPublicKey
+    );
+
+    if (emailjsPublicKey) {
+      emailjs.init(emailjsPublicKey);
+      console.log("EmailJS successfully initialized.");
+    } else {
+      console.error(
+        "Error: VITE_EMAILJS_PUBLIC_KEY is missing in environment variables. EmailJS may not function."
+      );
+      setError(
+        "Email service configuration missing. Please ensure your .env file is correct and restart the server."
+      );
+    }
+  }, []);
+
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
-    setError(null);
+    setError(null); // Reset error setiap kali submit
 
     try {
-      // Get environment variables
+      // Ambil variabel lingkungan
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       const emailjsServiceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -39,9 +63,17 @@ const Contact: React.FC = () => {
       const emailjsPublicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
       const emailjsToEmail = import.meta.env.VITE_EMAILJS_TO_EMAIL;
 
-      // Validate environment variables (line 55)
+      console.log("--- DEBUG (onSubmit): EmailJS Config Check ---");
+      console.log("Service ID:", emailjsServiceId);
+      console.log("Template ID:", emailjsTemplateId);
+      console.log("Public Key:", emailjsPublicKey);
+      console.log("To Email:", emailjsToEmail);
+      console.log("-----------------------------------------------");
+
       if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Missing Supabase configuration");
+        throw new Error(
+          "Missing Supabase configuration. Please check .env file."
+        );
       }
 
       if (
@@ -50,10 +82,12 @@ const Contact: React.FC = () => {
         !emailjsPublicKey ||
         !emailjsToEmail
       ) {
-        throw new Error("Missing EmailJS configuration");
+        throw new Error(
+          "Missing EmailJS configuration. Please check VITE_EMAILJS_* variables in .env file and restart your development server."
+        );
       }
 
-      // Send data to Supabase Edge Function
+      // Kirim data ke Supabase Edge Function
       const response = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
         method: "POST",
         headers: {
@@ -65,193 +99,47 @@ const Contact: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save message");
+        throw new Error(
+          errorData.error || "Failed to save message in Supabase."
+        );
       }
 
-      // Send email to company via EmailJS
+      // Kirim email ke perusahaan via EmailJS
       await emailjs.send(
         emailjsServiceId,
-        emailjsTemplateId,
+        emailjsTemplateId, // template_j242xgo
         {
           from_name: data.name,
           from_email: data.email,
           subject: data.subject,
-          message: data.message,
+          message_content: data.message,
           to_email: emailjsToEmail,
-        },
-        emailjsPublicKey
+          current_year: new Date().getFullYear(),
+        }
       );
 
-      // Send confirmation email to user via EmailJS
-      const confirmationHtml = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Confirmation Email - PT Company Emran Ghanim Asahi</title>
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-              background-color: #f4f4f4;
-              margin: 0;
-              padding: 0;
-              -webkit-font-smoothing: antialiased;
-              -ms-text-size-adjust: 100%;
-              -webkit-text-size-adjust: 100%;
-            }
-            .container {
-              max-width: 600px;
-              margin: 20px auto;
-              background-color: #ffffff;
-              border-radius: 8px;
-              overflow: hidden;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-              background: linear-gradient(135deg, #16a34a 0%, #a3e4b9 100%);
-              padding: 15px;
-              text-align: center;
-              position: relative;
-            }
-            .header img {
-              max-width: 100px;
-              height: auto;
-            }
-            .content {
-              padding: 30px;
-              color: #333333;
-            }
-            .content h2 {
-              color: #16a34a;
-              font-size: 24px;
-              margin-bottom: 20px;
-              text-align: center;
-            }
-            .content p {
-              font-size: 16px;
-              line-height: 1.6;
-              margin: 10px 0;
-            }
-            .content .field {
-              margin-bottom: 15px;
-              padding: 10px;
-              background-color: #f9fafb;
-              border-radius: 6px;
-            }
-            .content .field strong {
-              display: inline-block;
-              width: 120px;
-              color: #555555;
-              font-weight: 600;
-            }
-            .content .message {
-              background-color: #f0f9f0;
-              padding: 15px;
-              border-left: 4px solid #16a34a;
-              border-radius: 6px;
-              font-size: 16px;
-              line-height: 1.6;
-            }
-            .footer {
-              background-color: #f4f4f4;
-              padding: 20px;
-              text-align: center;
-              font-size: 14px;
-              color: #666666;
-            }
-            .footer a {
-              color: #16a34a;
-              text-decoration: none;
-              font-weight: 600;
-            }
-            .footer a:hover {
-              text-decoration: underline;
-            }
-            .button {
-              display: inline-block;
-              padding: 12px 24px;
-              background-color: #16a34a;
-              color: #ffffff;
-              text-align: center;
-              text-decoration: none;
-              border-radius: 6px;
-              font-size: 16px;
-              margin-top: 20px;
-              min-width: 200px;
-            }
-            .button:hover {
-              background-color: #13863b;
-            }
-            @media only screen and (max-width: 600px) {
-              .container { margin: 10px; border-radius: 0; }
-              .header { padding: 10px; }
-              .header img { max-width: 80px; }
-              .content { padding: 15px; }
-              .content h2 { font-size: 20px; }
-              .content p { font-size: 14px; }
-              .content .field { padding: 8px; }
-              .content .field strong { width: 100%; display: block; margin-bottom: 5px; font-size: 14px; }
-              .content .message { padding: 10px; font-size: 14px; }
-              .button { display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; font-size: 16px; }
-              .footer { padding: 15px; font-size: 12px; }
-              .footer p { margin: 5px 0; }
-            }
-            @media only screen and (max-width: 400px) {
-              .content h2 { font-size: 18px; }
-              .content p { font-size: 13px; }
-              .content .field strong { font-size: 13px; }
-              .content .message { font-size: 13px; }
-              .button { font-size: 14px; padding: 10px; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <img src="assets/logo.png" alt="PT Company Emran Ghanim Asahi Logo">
-            </div>
-            <div class="content">
-              <h2>Terima Kasih atas Pesan Anda</h2>
-              <p>Yth. ${data.name},</p>
-              <p>Kami telah menerima pesan Anda dan akan segera menanggapi dalam waktu dekat. Berikut adalah ringkasan dari pengiriman Anda:</p>
-              <div class="field">
-                <strong>Nama:</strong> ${data.name}
-              </div>
-              <div class="field">
-                <strong>Email:</strong> ${data.email}
-              </div>
-              <div class="field">
-                <strong>Subjek:</strong> ${data.subject}
-              </div>
-              <div class="field">
-                <strong>Pesan:</strong>
-                <div class="message">${data.message}</div>
-              </div>
-              <p>Jika Anda memiliki pertanyaan lebih lanjut, jangan ragu untuk menghubungi kami melalui tombol di bawah ini.</p>
-              <a href="mailto:contact@company.com" class="button">Hubungi Kami</a>
-            </div>
-            <div class="footer">
-              <p><strong>PT Company Emran Ghanim Asahi</strong></p>
-              <p>123 Business Avenue, Tokyo, Japan | <a href="mailto:contact@company.com">contact@company.com</a></p>
-              <p>© ${new Date().getFullYear()} PT Company Emran Ghanim Asahi. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
+      // Gunakan fungsi yang diimpor untuk membuat HTML konfirmasi
+      const confirmationHtml = generateConfirmationEmailHtml(
+        // <-- Panggil fungsi di sini
+        data.name,
+        data.email,
+        data.subject,
+        data.message,
+        new Date().getFullYear()
+      );
 
+      // Kirim email konfirmasi ke pengguna via EmailJS
       await emailjs.send(
         emailjsServiceId,
-        emailjsTemplateId, // Use the same template for both emails for simplicity
+        emailjsTemplateId, // Menggunakan template_j242xgo
         {
           from_name: "PT Company Emran Ghanim Asahi",
           from_email: "no-reply@company.com",
           subject: "Thank You for Contacting PT Company Emran Ghanim Asahi",
-          message_html: confirmationHtml, // Send as HTML
-          to_email: data.email, // Send to the user's email
-        },
-        emailjsPublicKey
+          message_content: confirmationHtml,
+          to_email: data.email,
+          current_year: new Date().getFullYear(),
+        }
       );
 
       setSubmitted(true);
